@@ -1,0 +1,5 @@
+const mongoose = require("mongoose")
+const console = require("debug")("development:db")
+const config = require("config")
+module.exports = mongoose.connect(config.get("MONGO_URI"))
+.then(console("Connected to database"))
