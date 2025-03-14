@@ -11,15 +11,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 app.use(express.static("public"));
-app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false }
-}));
+app.use(
+    session({
+      secret:process.env.SESSION_SECRET ,
+      resave: false,
+      saveUninitialized: true,
+      cookie: { maxAge: 2 * 60 * 60 * 1000 },
+    })
+  );
 app.use(cookieParser());
-app.use("/", require("./routes/mainroute"));
-app.use("/user",require("./routes/userRoutes"))
+app.use("/", require("./routes/user"));
 
 
 app.use((req,res,next)=>{

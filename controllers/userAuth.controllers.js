@@ -18,7 +18,61 @@ const registerUser = async (req, res, next) => {
       return res
         .status(400)
         .json({ success: false, message: "Email and username are required" });
-    const otpResponse = await sendOtp(email);
+        const messageHtml = `
+        <div style="font-family: 'Arial', sans-serif; text-align: center; padding: 20px; background: #121212; color: #ffffff;">
+    <div style="max-width: 450px; margin: auto; background: #1e1e1e; padding: 25px; border-radius: 10px; 
+        box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1); border: 1px solid #333;">
+        <h2 style="color: #d4af37; margin-bottom: 15px;">Your OTP Code</h2>
+        <p style="font-size: 16px; color: #cccccc;">Use the following OTP to verify your account:</p>
+        <h1 style="background: #d4af37; color: #1e1e1e; 
+            display: inline-block; padding: 15px 30px; border-radius: 5px; font-size: 28px;
+            letter-spacing: 3px; margin: 20px 0; font-weight: bold;">
+            {{OTP}}
+        </h1>
+        <p style="color: #aaaaaa; font-size: 14px; margin-top: 10px;">This OTP is valid for <b>5 minutes</b>. Do not share it with anyone.</p>
+        <div style="margin-top: 20px;">
+            <a href="#" style="background: #d4af37; color: #1e1e1e; text-decoration: none; padding: 12px 20px; 
+            font-size: 16px; border-radius: 5px; display: inline-block; font-weight: bold; box-shadow: 0 4px 10px rgba(255, 223, 96, 0.3);">
+            Verify Now</a>
+        </div>
+        <hr style="border: 0; height: 1px; background: #444; margin: 25px 0;">
+        <p style="margin-top: 10px; font-size: 12px; color: #777;">If you didn’t request this, please ignore this email.</p>
+    </div>
+</div>
+
+<style>
+    @media (prefers-color-scheme: light) {
+        div {
+            background: #f4f4f4 !important;
+            color: #333 !important;
+        }
+        div > div {
+            background: #ffffff !important;
+            border-color: #ddd !important;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15) !important;
+        }
+        h2 {
+            color: #ff8c00 !important;
+        }
+        p {
+            color: #555 !important;
+        }
+        h1 {
+            background: #ff8c00 !important;
+            color: #fff !important;
+        }
+        a {
+            background: #ff8c00 !important;
+            color: #fff !important;
+        }
+        hr {
+            background: #ddd !important;
+        }
+    }
+</style>
+
+`;
+    const otpResponse = await sendOtp(email, messageHtml);
     if (!otpResponse.success)
       return res
         .status(500)
