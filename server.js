@@ -18,10 +18,12 @@ app.use(session({
     cookie: { secure: false }
 }));
 app.use(cookieParser());
-app.use("/", require("./routes/mainRoutes/mainroute"));
+app.use("/", require("./routes/mainroute"));
 app.use("/user",require("./routes/userRoutes"))
+
+
 app.use((req,res,next)=>{
-    res.status(404).json({success:false, message:"Error 404!\n Not found"})
+    res.status(404).json({success:false, message:"Error 404!\n Not found.\n\nSorry the page you are looking for has been deleted or does not exists."})
 })
 
 const host = process.env.HOST || "localhost";

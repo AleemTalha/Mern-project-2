@@ -52,7 +52,6 @@ const sendOtp = async (userIdentifier) => {
         </div>
         `
     };
-
     try {
         await transporter.sendMail(mailOptions);
         return { success: true, message: "OTP sent successfully" };
