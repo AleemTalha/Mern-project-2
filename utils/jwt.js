@@ -8,5 +8,14 @@ const generateAccessToken = (user) => {
   );
 };
 
+const generateAccessTokenAdmin = (user) => {
+  let role = user.role;
+  return jwt.sign(
+    { id: user.id, role, email: user.email, location: user.location },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: "60m" }
+  );
+};
 
-module.exports = { generateAccessToken };
+
+module.exports = { generateAccessToken, generateAccessTokenAdmin };

@@ -6,7 +6,9 @@ require("./config/mongoose-connection");
 const cookieParser  = require("cookie-parser");
 const session = require("express-session")
 const morgan = require("morgan");
-
+const {isAdmin }= require("./middlewares/isAdmin");
+const { isLoggedIn } = require("./middlewares/isLoggedIn");
+const {adminLimiter}= require("./utils/rateLimiter");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
@@ -18,9 +20,13 @@ app.use(
       saveUninitialized: true,
       cookie: { maxAge: 2 * 60 * 60 * 1000 },
     })
-  );
+);
 app.use(cookieParser());
+app.use("/admin", isLoggedIn, isAdmin,adminLimiter, require("./routes/admin"));
 app.use("/", require("./routes/user"));
+
+
+
 
 
 app.use((req,res,next)=>{

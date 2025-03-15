@@ -8,17 +8,15 @@ const isLoggedIn = async (req, res, next) => {
     req.user = req.session.user;
     return next();
   }
-
   if (!req.cookies.token) {
-    return res.status(401).json({ success: false, message: "Unauthorized access" });
+    return res.status(401).json({ success: false, message: "Unauthorized access", loggedIn: false });
   }
-
   try {
     let decoded = jwt.verify(req.cookies.token, process.env.ACCESS_TOKEN_SECRET);
     let user = await userModel.findOne({ email: decoded.email, _id: decoded.id }).select("email fullname status role location");
 
     if (!user) {
-      return res.status(401).json({ success: false, message: "Unauthorized access, Invalid email" });
+      return res.status(401).json({ success: false, message: "Unauthorized access, Invalid email", loggedIn: false });
     }
 
     req.session.user = Object.freeze(user);

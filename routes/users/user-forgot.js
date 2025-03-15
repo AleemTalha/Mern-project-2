@@ -7,6 +7,7 @@ const console = require("debug")("development:Forgot-auth");
 const userModel = require("../../models/userModel");
 const bcrypt = require("bcrypt");
 const sendMessage = require("../../utils/nodemail");
+const {passwordResetLimiter} = require("../../utils/rateLimiter");
 
 router.post("/password", forgotPassword);
 router.get("/resend/otp", async (req, res) => {
@@ -36,6 +37,7 @@ router.post("/password/verify", async (req, res) => {
     if (response === "OTP verified") {
       req.session.verifiedforgotEmail = email;
       req.session.save();
+      
       return res.json({ success: true, message: "OTP verified" });
     } else if (response === "Invalid OTP") {
       return res.status(400).json({ success: false, message: "Invalid OTP" });
@@ -69,6 +71,7 @@ router.post("/password/reset/entry", async (req, res) => {
       { new: true }
     );
     delete req.session.verifiedforgotEmail;
+    passwordResetLimiter(req, res, () => {});
     const message = `
       <div class="container">
     <h2>🔐 Password Changed Successfully</h2>

@@ -3,6 +3,7 @@ const userModel = require("../models/userModel");
 const console = require("debug")("development:Update-auth");
 const { sendOtp, VerifyOtp } = require("../utils/otp.utils");
 const sendMessage = require("../utils/nodemail");
+const {passwordResetLimiter} = require("../utils/rateLimiter");
 
 const updatePassword = async (req, res, next) => {
   try {

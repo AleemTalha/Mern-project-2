@@ -3,7 +3,10 @@ const jwt = require("jsonwebtoken");
 const userModel = require("../models/userModel");
 const console = require("debug")("development:auth");
 const { sendOtp, VerifyOtp } = require("../utils/otp.utils");
-const { generateAccessToken } = require("../utils/jwt");
+const {
+  generateAccessToken,
+  generateAccessTokenAdmin,
+} = require("../utils/jwt");
 
 const registerUser = async (req, res, next) => {
   try {
@@ -18,7 +21,7 @@ const registerUser = async (req, res, next) => {
       return res
         .status(400)
         .json({ success: false, message: "Email and username are required" });
-        const messageHtml = `
+    const messageHtml = `
         <div style="font-family: 'Arial', sans-serif; text-align: center; padding: 20px; background: #121212; color: #ffffff;">
     <div style="max-width: 450px; margin: auto; background: #1e1e1e; padding: 25px; border-radius: 10px; 
         box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1); border: 1px solid #333;">
@@ -101,8 +104,9 @@ const VerifyRegistration = async (req, res, next) => {
     const otpResponse = await VerifyOtp(email, otp);
     if (otpResponse === "OTP Expired")
       return res.status(410).json({ success: false, message: "OTP Expired" });
-    if (otpResponse === "Invalid OTP"){
-      return res.status(400).json({ success: false, message: "Invalid OTP" });}
+    if (otpResponse === "Invalid OTP") {
+      return res.status(400).json({ success: false, message: "Invalid OTP" });
+    }
     req.session.verifiedEMAIL = email;
     res.status(201).json({ success: true, message: "OTP verified" });
   } catch (err) {
@@ -156,13 +160,23 @@ const loginUser = async (req, res) => {
         success: false,
         message: "Invalid Email or Password. Please try again",
       });
-    const accesstoken = generateAccessToken(flag);
-    res.cookie("token", accesstoken, {
-      httpOnly: true,
-      secure: true,
-      maxAge: 24 * 60 * 60 * 1000,
-    });
-    //here to set the flag type
+    if (flag.role === "user") {
+      const accesstoken = generateAccessToken(flag);
+      res.cookie("token", accesstoken, {
+        httpOnly: true,
+        secure: true,
+        maxAge: 15 * 24 * 60 * 60 * 1000,
+        expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+      });
+    } else if (flag.role === "admin") {
+      const accesstoken = generateAccessTokenAdmin(flag);
+      res.cookie("token", accesstoken, {
+        httpOnly: true,
+        secure: true,
+        maxAge: 60 * 60 * 1000,
+        expires: new Date(Date.now() + 60 * 60 * 1000),
+      });
+    }
     res
       .status(200)
       .json({ success: true, message: "Login successful", role: flag.role });

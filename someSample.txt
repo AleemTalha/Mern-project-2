@@ -1,0 +1,9 @@
+const filter = {};
+if (category) {
+  filter.category = category;
+}
+
+const ads = await adsModel.aggregate([
+  { $match: filter }, // Sirf provided category ki ads ayengi
+  { $sample: { size: 4 } } // Un me se random 4 ads uthayega
+]);
