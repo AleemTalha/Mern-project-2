@@ -6,11 +6,11 @@ const superModel = require("../models/super.model");
 const { sendOtp, VerifyOtp } = require("../utils/otp.utils");
 const { check, validationResult } = require("express-validator");
 const getTotalIndexes = require("../utils/superIndexes");
+const { loginSuperAdmin } = require("../controllers/superAuth");
+const { isSuperAdmin } = require("../middlewares/isSuper");
+const { isAdminLoggedIn } = require("../middlewares/isSuperAdminLogin");
 
 router.use(Restrict);
-router.get("/dashboard", (req, res) => {
-  res.json({ success: true, message: "Welcome to the super admin route" });
-});
 
 if (process.env.NODE_ENV === "development") {
   getTotalIndexes().then((totalIndexes) => {
@@ -178,11 +178,20 @@ if (process.env.NODE_ENV === "development") {
       );
     }
     else {
-      console("Super admin already exists");
+        router.use((req,res,next) => {
+          console("Admin already exists");
+          next();
+            // res.status(403).json({success: false, message: "Super admin already exists"});
+        });
+
     }
   }).catch((err) => {
     console("Error: ", err.message);
   });
 }
+
+router.post("/login/super", loginSuperAdmin)
+
+router.use("/admins/managements",isAdminLoggedIn, isSuperAdmin, require("./super/admins"));
 
 module.exports = router;

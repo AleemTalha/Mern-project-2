@@ -40,4 +40,5 @@ const loginSuperAdmin = [
     }
   }
 ];
+
 module.exports = { loginSuperAdmin };

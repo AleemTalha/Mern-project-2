@@ -20,11 +20,11 @@ const generateAccessTokenAdmin = (user) => {
 const generateAccessTokenAdminSuper = (user) => {
   let role = user.role;
   return jwt.sign(
-    { id: user.id, role, email: user.email, location: user.location },
+    { id: user.id, role, email: user.email, },
     process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "60m" }
+    { expiresIn: "20m" }
   );
 };
 
 
-module.exports = { generateAccessToken, generateAccessTokenAdmin };
+module.exports = { generateAccessToken, generateAccessTokenAdmin, generateAccessTokenAdminSuper };
