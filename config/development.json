@@ -1,3 +1,4 @@
 {
-    "MONGO_URI" : "mongodb://localhost:27017/project-2"
+    "MONGO_URI" : "mongodb://localhost:27017/project-2",
+    "FRONT_END_URI" : "https://localhost:5173"
 }
