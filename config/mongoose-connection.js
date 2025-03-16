@@ -18,11 +18,11 @@ mongoose.connect(Mongo_URI, {
   .then(async () => {
     debug("Connected to database");
 
-    await users.syncIndexes();
-    await ads.syncIndexes();
-    await reports.syncIndexes();
-    await superAdmin.syncIndexes();
-    await applications.syncIndexes();
+    // await ads.syncIndexes();
+    // await applications.syncIndexes();
+    // await reports.syncIndexes();
+    // await superAdmin.syncIndexes();
+    // await users.syncIndexes();
 
     debug("Indexes synchronized");
   })

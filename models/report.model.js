@@ -12,7 +12,6 @@ const reportSchema = new Schema({
   },
   description: {
     type: String,
-    // required: true,
   },
   createdBy: {
     type: Schema.Types.ObjectId,
@@ -24,7 +23,7 @@ const reportSchema = new Schema({
     default: Date.now,
   },
   type: {
-    type: String, // user , ads
+    type: String,
     enum: ["user", "ads"],
     required: true,
   },
@@ -33,19 +32,11 @@ const reportSchema = new Schema({
   },
 });
 
-reportSchema.index({ title: 1 }); 
-reportSchema.index({ createdBy: 1 }); 
-reportSchema.index({ issue: 1 }); 
-reportSchema.index({ createdAt: -1 }); 
+reportSchema.index({ title: 1 });
+reportSchema.index({ createdBy: 1 });
+reportSchema.index({ issue: 1 });
+reportSchema.index({ createdAt: -1 });
+reportSchema.index({ type: 1 });
+reportSchema.index({ id: 1 });
 
-// Use ensureIndexes to build indexes at the first render (initial loading)
-// reportSchema.on('index', function (error) {
-//   if (error) {
-//     console.log('Error while creating indexes', error);
-//   } else {
-//     console.log('Indexes created successfully!');
-//   }
-// });
-
-const reportsModel = mongoose.model("Report", reportSchema);
-module.exports = reportsModel;
+module.exports = mongoose.model("Report", reportSchema);

@@ -21,6 +21,8 @@ adSchema.index({ status: 1 });
 adSchema.index({ price: 1 });
 adSchema.index({ postedBy: 1 });
 adSchema.index({ createdAt: -1 });
+adSchema.index({ category: 1, price: 1 });
+adSchema.index({ category: 1, status: 1 });
 adSchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model("Ads", adSchema);

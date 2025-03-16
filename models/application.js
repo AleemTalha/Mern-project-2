@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const applicationSchema = new Schema({
   name: {
     type: String,
-    // required: true,
+    required: true,
   },
   description: {
     type: String,
@@ -13,7 +13,7 @@ const applicationSchema = new Schema({
   createdBy: {
     type: Schema.Types.ObjectId,
     ref: "User",
-    // required: true,
+    required: true,
   },
   createdAt: {
     type: Date,
