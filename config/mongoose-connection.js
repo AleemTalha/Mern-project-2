@@ -12,8 +12,6 @@ Mongo_URI = Mongo_URI.replace("<db_password>", process.env.DB_PASSWORD);
 Mongo_URI = Mongo_URI.replace("<dbname>", process.env.DB_NAME);
 
 mongoose.connect(Mongo_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
 })
   .then(async () => {
     debug("Connected to database");
