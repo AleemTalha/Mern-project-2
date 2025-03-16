@@ -10,11 +10,22 @@ router.get("/", async (req, res) => {
     if (lastId) filters._id = { $gt: lastId };
     const topIssues = await reportsModel.aggregate([
       { $match: filters },
-      { $group: { _id: "$issue", count: { $sum: 1 } } },
+      {
+        $group: {
+          _id: "$_id",
+          issue: { $first: "$issue" },
+          count: { $sum: 1 },
+          title: { $first: "$title" },
+          description: { $first: "$description" },
+          createdBy: { $first: "$createdBy" },
+          type: { $first: "$type" },
+          createdAt: { $first: "$createdAt" },
+        },
+      },
       { $sort: { count: -1 } },
       { $limit: 4 },
     ]);
-    res.status(200).json({ success: true, data: topIssues });
+    res.status(200).json({ success: true, topIssues });
   } catch (error) {
     console(error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -48,7 +59,5 @@ router.get("/:id/delete", async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
-
-
 
 module.exports = router;

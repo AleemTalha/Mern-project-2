@@ -1,10 +1,12 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const userModel = require("../../models/userModel");
 const upload = require("../../config/multer-config");
 const cloudinary = require("../../config/cloudinary.config");
 const { sendOtp, VerifyOtp } = require("../../utils/otp.utils");
 const sendMessage = require("../../utils/nodemail");
 const console = require("debug")("development:mainroute");
+const reportModel = require("../../models/report.model");
 const router = express.Router();
 const {
   registerUser,
@@ -14,13 +16,12 @@ const {
 } = require("../../controllers/userAuth.controllers");
 const { isLoggedIn } = require("../../middlewares/isLoggedIn");
 const adsModel = require("../../models/ads.models");
-
+const {isUser }= require("../../middlewares/isUser");
 
 
 router.get("/", isLoggedIn, async (req, res) => {
   res.status(200).json({ success: true, message: "User Dashboard" });
 });
-
 router.get("/sample/api", async(req, res) => {
  try
  {
@@ -65,7 +66,7 @@ router.get("/sample/api", async(req, res) => {
    res.status(500).json({ success: false, message: "Internal Server Error" });
  }
 })
-router.get("/api",isLoggedIn, async (req, res) => {
+router.get("/api",isLoggedIn,isUser, async (req, res) => {
   try {
     const [ lng, lat ] = req.user.location.coordinates;
     // console("User Location", lng, lat);
@@ -166,24 +167,30 @@ router.get("/api",isLoggedIn, async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
-router.get("/listings", isLoggedIn, async (req, res) => {
+router.get("/listings", isLoggedIn, isUser, async (req, res) => {
   try {
     const { categorie, subcategorie, startPrice, lastPrice, lastId } = req.query;
-    const  [long, lat] = req.user.location.coordinates;
+    const [long, lat] = req.user.location.coordinates;
+
     const matchQuery = {
       ...(categorie && { category: categorie }),
       ...(subcategorie && { subCategory: subcategorie }),
     };
-    if (!isNaN(startPrice) && !isNaN(lastPrice)) {
+    const minPrice = parseFloat(startPrice);
+    const maxPrice = parseFloat(lastPrice);
+
+    if (!isNaN(minPrice) && !isNaN(maxPrice)) {
       matchQuery.price = { 
-        $gte: parseFloat(startPrice), 
-        $lte: parseFloat(lastPrice) 
+        $gte: minPrice, 
+        $lte: maxPrice 
       };
     }
+
     if (lastId) {
       matchQuery._id = { $gt: new mongoose.Types.ObjectId(lastId) };
     }
-    console(matchQuery);
+
+
     const ads = await adsModel.aggregate([
       {
         $geoNear: {
@@ -199,11 +206,11 @@ router.get("/listings", isLoggedIn, async (req, res) => {
 
     res.status(200).json({ success: true, ads });
   } catch (err) {
-    console(err)
+    console(err); 
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
-router.get("/items/:id", async (req, res) => {
+router.get("/items/:id",isLoggedIn, isUser, async (req, res) => {
   const { id } = req.params;
   try {
     const ad = await adsModel.findById(id);
@@ -218,7 +225,31 @@ router.get("/items/:id", async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 })
+router.post("/item/report", isLoggedIn, isUser, async (req, res) => {
+  const { title, issue, createdBy, type, id } = req.query;
+  const { description } = req.body;
 
+  if (!title || !issue || !createdBy || !type || !id) {
+    return res.status(400).json({ success: false, message: "Missing required fields" });
+  }
+
+  try {
+    const report = new reportModel({
+      title,
+      description,
+      issue,
+      createdBy: new mongoose.Types.ObjectId(createdBy),
+      type,
+      id: new mongoose.Types.ObjectId(id),
+    });
+
+    await report.save();
+    res.status(201).json({ success: true, message: "Report submitted successfully" });
+  } catch (err) {
+    console(err);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
 
 
 

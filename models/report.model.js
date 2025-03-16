@@ -6,9 +6,13 @@ const reportSchema = new Schema({
     type: String,
     required: true,
   },
+  id: {
+    type: Schema.Types.ObjectId,
+    required: true,
+  },
   description: {
     type: String,
-    required: true,
+    // required: true,
   },
   createdBy: {
     type: Schema.Types.ObjectId,

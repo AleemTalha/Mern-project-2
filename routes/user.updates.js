@@ -1,24 +1,25 @@
 const express = require("express");
-const userModel = require("../../models/userModel");
-const upload = require("../../config/multer-config");
-const cloudinary = require("../../config/cloudinary.config");
-const { sendOtp, VerifyOtp } = require("../../utils/otp.utils");
-const sendMessage = require("../../utils/nodemail");
+const userModel = require("../models/userModel");
+const upload = require("../config/multer-config");
+const cloudinary = require("../config/cloudinary.config");
+const { sendOtp, VerifyOtp } = require("../utils/otp.utils");
+const sendMessage = require("../utils/nodemail");
 const console = require("debug")("development:mainroute");
-const {isUser }= require("../../middlewares/isUser");
 const router = express.Router();
 const {
   registerUser,
   VerifyRegistration,
   getRegistered,
   loginUser,
-} = require("../../controllers/userAuth.controllers");
-const { isLoggedIn } = require("../../middlewares/isLoggedIn");
-const adsModel = require("../../models/ads.models");
+} = require("../controllers/userAuth.controllers");
+const { isLoggedIn } = require("../middlewares/isLoggedIn");
+const adsModel = require("../models/ads.models");
 
-
-
-router.post("/profile/image",isLoggedIn,isUser,upload.single("image"),async (req, res) => {
+router.post(
+  "/profile/image",
+  isLoggedIn,
+  upload.single("image"),
+  async (req, res) => {
     try {
       const user = await userModel
         .findOne({ email: req.user.email })
@@ -58,67 +59,14 @@ router.post("/profile/image",isLoggedIn,isUser,upload.single("image"),async (req
     }
   }
 );
-router.post("/recovery/mail", isLoggedIn, isUser,async (req, res) => {
+router.post("/recovery/mail", isLoggedIn, async (req, res) => {
   const { recoveryEmail } = req.body;
   if (!recoveryEmail)
     return res
       .status(400)
       .json({ success: false, message: "Recovery Email is required" });
   try {
-    const messageHtml = `
-    <div style="font-family: 'Arial', sans-serif; text-align: center; padding: 20px; background: #121212; color: #ffffff;">
-        <div style="max-width: 450px; margin: auto; background: #1e1e1e; padding: 25px; border-radius: 10px; 
-            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1); border: 1px solid #333;">
-            <h2 style="color: #d4af37; margin-bottom: 15px;">Account Recovery OTP</h2>
-            <p style="font-size: 16px; color: #cccccc;">Use the following OTP to recover your account:</p>
-            <h1 style="background: #d4af37; color: #1e1e1e; 
-                display: inline-block; padding: 15px 30px; border-radius: 5px; font-size: 28px;
-                letter-spacing: 3px; margin: 20px 0; font-weight: bold;">
-                {{OTP}}
-            </h1>
-            <p style="color: #aaaaaa; font-size: 14px; margin-top: 10px;">This OTP is valid for <b>5 minutes</b>. Do not share it with anyone.</p>
-            <div style="margin-top: 20px;">
-                <a href="#" style="background: #d4af37; color: #1e1e1e; text-decoration: none; padding: 12px 20px; 
-                font-size: 16px; border-radius: 5px; display: inline-block; font-weight: bold; box-shadow: 0 4px 10px rgba(255, 223, 96, 0.3);">
-                Recover Account</a>
-            </div>
-            <hr style="border: 0; height: 1px; background: #444; margin: 25px 0;">
-            <p style="margin-top: 10px; font-size: 12px; color: #777;">If you didn’t request this, please ignore this email.</p>
-        </div>
-    </div>
-    <style>
-        @media (prefers-color-scheme: light) {
-            div {
-                background: #f4f4f4 !important;
-                color: #333 !important;
-            }
-            div > div {
-                background: #ffffff !important;
-                border-color: #ddd !important;
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15) !important;
-            }
-            h2 {
-                color: #ff8c00 !important;
-            }
-            p {
-                color: #555 !important;
-            }
-            h1 {
-                background: #ff8c00 !important;
-                color: #fff !important;
-            }
-            a {
-                background: #ff8c00 !important;
-                color: #fff !important;
-            }
-            hr {
-                background: #ddd !important;
-            }
-        }
-    </style>
-`;
-
-    const otpResponse = await sendOtp(recoveryEmail, messageHtml);
+    const otpResponse = await sendOtp(recoveryEmail);
     if (!otpResponse.success)
       return res
         .status(500)
@@ -131,14 +79,13 @@ router.post("/recovery/mail", isLoggedIn, isUser,async (req, res) => {
       email: recoveryEmail,
     });
   } catch (err) {
-    console(err)
     res.status(500).json({
       success: false,
       message: "Internal Server Error. Please try again later",
     });
   }
 });
-router.post("/recovery/mail/verify", isLoggedIn, isUser,async (req, res) => {
+router.post("/verify/recovery/mail", isLoggedIn, async (req, res) => {
   const { otp } = req.body;
   try {
     const recoveryEmail = req.session.recoveryEmail;
@@ -194,23 +141,7 @@ router.post("/recovery/mail/verify", isLoggedIn, isUser,async (req, res) => {
     });
   }
 });
-router.post("/location", isLoggedIn,isUser, async (req, res) => {
-  const { longitude, latitude } = req.body;
-  if (!longitude || !latitude)
-    return res
-  .status(400)
-  .json({ success: false, message: "Longitude and latitude are required" });
-  
-  try {
-    await userModel.findByIdAndUpdate(req.user._id, {
-      location: { type: "Point", coordinates: [longitude, latitude] },
-    });
-    res.json({ success: true, message: "Location updated successfully" });
-  } catch (err) {
-    res
-    .status(500)
-      .json({ success: false, message: "Error updating location" });
-  }
-});
+router.post("/password");
+
 
 module.exports = router;
