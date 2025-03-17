@@ -1,7 +1,7 @@
 const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
-const xssClean = require("xss-clean");
+// const xssClean = require("xss-clean");
 const app = express();
 const compression = require("compression");
 const debug = require("debug")("development:app");
@@ -22,18 +22,20 @@ const { superAdminLimiter } = require("./utils/rateLimiter");
 app.use(express.json());
 app.use(helmet());
 app.use(mongoSanitize());
-app.use(xssClean());
+// app.use(xssClean());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 app.use(express.static("public"));
 
-const MONGO_URI = config
-  .get("MONGO_URI")
-  .replace("<db_password>", process.env.DB_PASSWORD)
+let MONGO_URI = config.get("MONGO_URI");
+
+if (MONGO_URI.includes("<db_password>") && process.env.DB_PASSWORD) {
+  MONGO_URI = MONGO_URI.replace("<db_password>", process.env.DB_PASSWORD);
+}
 
 app.use(
   session({
-    secret:process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: MONGO_URI }),
