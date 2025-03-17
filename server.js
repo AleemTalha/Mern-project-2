@@ -24,7 +24,9 @@ app.use(helmet());
 app.use(mongoSanitize());
 // app.use(xssClean());
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan("dev"));
+if (process.env.NODE_ENV !== "production") {
+  app.use(morgan("dev"));
+}
 app.use(express.static("public"));
 
 let MONGO_URI = config.get("MONGO_URI");
