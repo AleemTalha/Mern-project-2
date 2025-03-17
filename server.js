@@ -5,7 +5,7 @@ const xssClean = require("xss-clean");
 const app = express();
 const compression = require("compression");
 const csrf = require("csurf");
-const console = require("debug")("development:app");
+const debug = require("debug")("development:app");
 const config = require("config");
 require("dotenv").config();
 const mongoSanitize = require("express-mongo-sanitize");
@@ -76,9 +76,8 @@ app.use((req, res, next) => {
     });
 })
 
-const host = process.env.HOST || "localhost";
 const port = process.env.PORT || 3001;
 
-app.listen(port, host, () => {
-  console(`Server running at: http://${host}:${port}`);
+app.listen(port, () => {
+  console.log(`Server running at: port ${port}`);
 });
