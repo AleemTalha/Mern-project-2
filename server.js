@@ -43,29 +43,29 @@ app.use(
 
 app.disable("x-powered-by");
 
-// ✅ Only allow requests from your frontend
-const allowedOrigin = config.get("FRONT_END_URI");
+
+const FRONTEND_URL = config.get("FRONT_END_URI");
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (origin === allowedOrigin) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
+    origin: FRONTEND_URL,
     methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// ✅ Middleware to block non-frontend requests completely
 app.use((req, res, next) => {
-  if (req.headers.origin !== allowedOrigin) {
-    return res.status(403).json({ success: false, message: "Forbidden" });
+  if (req.headers.origin !== FRONTEND_URL) {
+    return res.status(403).json({ 
+      success: false, 
+      message: "🚫 Access Denied! You are not authorized to view this content. 🔒",
+      suggestion: "🔄 Please check your permissions or contact support if you believe this is an error."
+    });
   }
   next();
 });
+
+
+
 
 app.get("/", (req, res) => {
   res.send("Welcome to the server");
@@ -86,7 +86,6 @@ const server = app.listen(port, () => {
   console.log(`Server running at port ${port}`);
 });
 
-// Graceful Shutdown
 process.on("SIGTERM", () => {
   console.log("SIGTERM received, shutting down gracefully...");
   server.close(() => {
