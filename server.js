@@ -13,7 +13,7 @@ const MongoStore = require("connect-mongo");
 
 const app = express();
 
-app.use(morgan("dev"));
+app.use(morgan("tiny"));
 app.use(express.json());
 app.use(helmet());
 app.use(mongoSanitize());
