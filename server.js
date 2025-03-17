@@ -1,5 +1,6 @@
 const express = require("express");
 const helmet = require("helmet");
+const path = require("path")
 const cors = require("cors");
 const compression = require("compression");
 const config = require("config");
@@ -54,14 +55,15 @@ app.use(
 app.disable("x-powered-by");
 
 const FRONTEND_URLS = config.get("FRONT_END_URI");
+const allowedOrigins = Array.isArray(FRONTEND_URLS) ? FRONTEND_URLS : [FRONTEND_URLS];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || FRONTEND_URLS.includes(origin)) {
+      if (origin && allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(null, false); // No error thrown, just rejecting the origin
+        callback(new Error("🚫 Not allowed by CORS"));
       }
     },
     methods: ["GET", "POST", "PUT", "DELETE"],
@@ -70,18 +72,29 @@ app.use(
 );
 
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  
-  if (!origin || FRONTEND_URLS.includes(origin)) {
-    return next();
-  }
+  try {
+    const origin = req.headers.origin;
+    const referer = req.headers.referer;
 
-  return res.status(403).json({
-    success: false,
-    message: "🚫 Access Denied! You are not authorized to view this content. 🔒",
-    suggestion:
-      "🔄 Please check your permissions or contact support if you believe this is an error.",
-  });
+    if (!origin || !referer) {
+      throw new Error("🚫 Unauthorized Request");
+    }
+
+    const isValidOrigin = allowedOrigins.includes(origin);
+    const isValidReferer = allowedOrigins.some((url) => referer.startsWith(url));
+
+    if (isValidOrigin && isValidReferer) {
+      return next();
+    }
+
+    throw new Error("🚫 Unauthorized Request");
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.use((err, req, res, next) => {
+  res.status(403).sendFile(path.join(__dirname, "views", "error.html"));
 });
 
 

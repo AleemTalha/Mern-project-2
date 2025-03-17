@@ -27,7 +27,6 @@ const { isLoggedIn } = require("../middlewares/isLoggedIn");
 const adsModel = require("../models/ads.models");
 
 
-
 router.post("/login", loginLimiter, loginUser);
 router.get("/profile", userLimiter, isLoggedIn, async (req, res) => {
   try {
