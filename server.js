@@ -6,13 +6,14 @@ const config = require("config");
 require("dotenv").config();
 const mongoSanitize = require("express-mongo-sanitize");
 require("./config/mongoose-connection");
-
+const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 
 const app = express();
 
+app.use(morgan("dev"));
 app.use(express.json());
 app.use(helmet());
 app.use(mongoSanitize());
@@ -43,32 +44,41 @@ app.use(
 
 app.disable("x-powered-by");
 
+const FRONTEND_URLS = config.get("FRONT_END_URI");
 
-const FRONTEND_URL = config.get("FRONT_END_URI");
 app.use(
   cors({
-    origin: FRONTEND_URL,
+    origin: function (origin, callback) {
+      if (!origin || FRONTEND_URLS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, false); 
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
 app.use((req, res, next) => {
-  if (req.headers.origin !== FRONTEND_URL) {
-    return res.status(403).json({ 
-      success: false, 
-      message: "🚫 Access Denied! You are not authorized to view this content. 🔒",
-      suggestion: "🔄 Please check your permissions or contact support if you believe this is an error."
-    });
+  if (!req.headers.origin || FRONTEND_URLS.includes(req.headers.origin)) {
+    return next();
   }
-  next();
+  return res.status(403).json({
+    success: false,
+    message: "🚫 Access Denied! You are not authorized to view this content. 🔒",
+    suggestion: "🔄 Please check your permissions or contact support if you believe this is an error."
+  });
 });
 
 
 
 
 app.get("/", (req, res) => {
-  res.send("Welcome to the server");
+  res.status(200).json({
+    success: true,
+    message: "Welcome to the API",
+  });
 });
 
 app.use("/", require("./routes/user"));
