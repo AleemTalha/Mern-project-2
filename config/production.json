@@ -1,6 +1,6 @@
 {
     "MONGO_URI" : "mongodb+srv://aleemtalha:10khH9XyIxU1HCHW@cluster0.3mskd.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
     "FRONT_END_URI": [
-    "https://192.168.100.123:5173"
+    "http://192.168.100.123:5173"
     ]
 }
