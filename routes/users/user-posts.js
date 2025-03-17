@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const isLoggedIn = require("../../middlewares/isLoggedIn");
+const userModel = require("../../models/userModel");
 const adsModel = require("../../models/ads.models");
 const upload = require("../../config/multer-config");
 const cloudinary = require("../../config/cloudinary.config");
@@ -37,59 +38,42 @@ router.post("/attributes", async (req, res) => {
 });
 router.post("/ads", upload.single("image"), async (req, res) => {
   try {
-    const { title, condition, price, PhoneNumber, showNumber, description } =
-      req.body;
-    if (
-      !title ||
-      !condition ||
-      !price ||
-      !PhoneNumber ||
-      !showNumber ||
-      !description
-    ) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Please provide all required details",
-        });
+    const { title, condition, price, PhoneNumber, showNumber, description } = req.body;
+    
+    if (!title || !condition || !price || !PhoneNumber || !showNumber || !description) {
+      return res.status(400).json({ success: false, message: "Please provide all required details" });
     }
-    // console("Session", req.session);
+
     if (!req.session.product) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Please provide category and subcategory",
-        });
+      return res.status(400).json({ success: false, message: "Please provide category and subcategory" });
     }
+
     const { category, subCategory } = req.session.product;
-    const user = req.user;
+    
+    const user = await userModel.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
     if (!user.location?.coordinates) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User location is required" });
+      return res.status(400).json({ success: false, message: "User location is required" });
     }
-    // console(req.file);
+
     if (!req.file || !req.file.buffer) {
-        return res.status(400).json({ success: false, message: "No file uploaded" });
-      }
-    if (req.file.size > 10000000) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Image size should be less than 500KB",
-        });
+      return res.status(400).json({ success: false, message: "No file uploaded" });
     }
+
+    if (req.file.size > 10000000) {
+      return res.status(400).json({ success: false, message: "Image size should be less than 500KB" });
+    }
+
     const result = await new Promise((resolve, reject) => {
-      cloudinary.uploader
-        .upload_stream({ resource_type: "image" }, (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        })
-        .end(req.file.buffer);
+      cloudinary.uploader.upload_stream({ resource_type: "image" }, (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }).end(req.file.buffer);
     });
+
     const newAd = new adsModel({
       title,
       condition,
@@ -104,17 +88,20 @@ router.post("/ads", upload.single("image"), async (req, res) => {
       image: { url: result.secure_url, public_id: result.public_id },
       showNumber: !!showNumber,
     });
+
     await newAd.save();
+
+    user.posts.push(newAd._id);
+    await user.save();
+
     delete req.session.product;
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Ad posted successfully, Images uploaded",
-      });
+
+    res.status(200).json({ success: true, message: "Ad posted successfully, Images uploaded" });
+
   } catch (err) {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
+
 
 module.exports = router;

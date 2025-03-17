@@ -47,7 +47,6 @@ app.disable("x-powered-by");
 app.use(compression());
 app.use(cookieParser());
 
-
 // const FRONTEND_URL = config.get("FRONT_END_URI");
 // app.use(
 //   cors({
