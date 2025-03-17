@@ -1,10 +1,7 @@
 const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
-// const xssClean = require("xss-clean");
-const app = express();
 const compression = require("compression");
-const debug = require("debug")("development:app");
 const config = require("config");
 require("dotenv").config();
 const mongoSanitize = require("express-mongo-sanitize");
@@ -13,21 +10,16 @@ require("./config/mongoose-connection");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
-const morgan = require("morgan");
-const { isAdmin } = require("./middlewares/isAdmin");
-const { isLoggedIn } = require("./middlewares/isLoggedIn");
-const { adminLimiter } = require("./utils/rateLimiter");
-const { superAdminLimiter } = require("./utils/rateLimiter");
+
+const app = express();
 
 app.use(express.json());
 app.use(helmet());
 app.use(mongoSanitize());
-// app.use(xssClean());
 app.use(express.urlencoded({ extended: true }));
-if (process.env.NODE_ENV !== "production") {
-  app.use(morgan("dev"));
-}
 app.use(express.static("public"));
+app.use(compression());
+app.use(cookieParser());
 
 let MONGO_URI = config.get("MONGO_URI");
 
@@ -50,16 +42,13 @@ app.use(
 );
 
 app.disable("x-powered-by");
-app.use(compression());
-app.use(cookieParser());
 
-// Allow all origins for CORS
-const allowedOrigins = config.get("FRONT_END_URI"); 
-
+// ✅ Only allow requests from your frontend
+const allowedOrigin = config.get("FRONT_END_URI");
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (origin === allowedOrigin) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
@@ -70,18 +59,25 @@ app.use(
   })
 );
 
+// ✅ Middleware to block non-frontend requests completely
+app.use((req, res, next) => {
+  if (req.headers.origin !== allowedOrigin) {
+    return res.status(403).json({ success: false, message: "Forbidden" });
+  }
+  next();
+});
+
 app.get("/", (req, res) => {
   res.send("Welcome to the server");
 });
-app.use("/super/admin", superAdminLimiter, require("./routes/superAdmin"));
-app.use("/admin", isLoggedIn, isAdmin, adminLimiter, require("./routes/admin"));
+
 app.use("/", require("./routes/user"));
 
 app.use((req, res) => {
   res.status(404).json({
     success: false,
     message:
-      "Error 404! Not found. Sorry, the page you are looking for has been deleted or does not exist.",
+      "Error 404! Not found. Sorry, the page you are looking for does not exist.",
   });
 });
 
