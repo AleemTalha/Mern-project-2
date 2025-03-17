@@ -54,17 +54,18 @@ app.use(compression());
 app.use(cookieParser());
 
 // Allow all origins for CORS
-const allowedOrigins = config.get("FRONT_END_URI");
+const allowedOrigins = config.get("FRONT_END_URI"); 
+
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (origin === allowedOrigin) {
+      if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true, 
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
   })
 );
