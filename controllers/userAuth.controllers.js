@@ -20,7 +20,6 @@ const registerUser = async (req, res, next) => {
       email = req.body.email;
       const firstName = req.body.firstName;
       const lastName = req.body.lastName;
-      console.log(req.body)
       if (!email || !firstName || !lastName) {
         return res.status(400).json({
           success: false,
@@ -39,6 +38,7 @@ const registerUser = async (req, res, next) => {
       req.session.email = email;
       req.session.username = username;
     }
+
     const messageHtml = `
       <div style="font-family: 'Arial', sans-serif; text-align: center; padding: 20px; background: #121212; color: #ffffff;">
         <div style="max-width: 450px; margin: auto; background: #1e1e1e; padding: 25px; border-radius: 10px; box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1); border: 1px solid #333;">
@@ -67,7 +67,6 @@ const registerUser = async (req, res, next) => {
       });
     }
 
-    console.log("Session Before Save:", req.session);
     req.session.save((err) => {
       if (err) {
         console.error("Session Save Error:", err);
@@ -92,7 +91,6 @@ const registerUser = async (req, res, next) => {
     });
   }
 };
-
 
 const VerifyRegistration = async (req, res, next) => {
   try {
