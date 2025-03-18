@@ -20,7 +20,7 @@ const registerUser = async (req, res, next) => {
       email = req.body.email;
       const firstName = req.body.firstName;
       const lastName = req.body.lastName;
-
+      console.log(req.body)
       if (!email || !firstName || !lastName) {
         return res.status(400).json({
           success: false,
