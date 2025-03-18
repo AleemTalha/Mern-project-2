@@ -101,7 +101,7 @@ app.use((err, req, res, next) => {
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Welcome to the API",
+    message: "Welcome to the API, testing the security",
   });
 });
 app.get("/hello", (req, res) => {
