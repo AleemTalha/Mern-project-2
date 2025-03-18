@@ -33,6 +33,17 @@ const loginLimiter = rateLimit({
   },
 });
 
+const otpLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 3,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      message: "Too many otp requests. Please try again after 5 minutes."
+    });
+  },
+});
+
 const passwordResetLimiter = rateLimit({
   windowMs: 15 * 24 * 60 * 60 * 1000,
   max: 1,
@@ -97,4 +108,5 @@ module.exports = {
   reportLimiter,
   superAdminLimiter,
   superAdminLoginLimiter,
+  otpLimiter
 };

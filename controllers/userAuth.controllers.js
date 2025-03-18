@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const userModel = require("../models/userModel");
 const console = require("debug")("development:auth");
 const { sendOtp, VerifyOtp } = require("../utils/otp.utils");
+const { otpLimiter } = require("../utils/rateLimiter");
 const {
   generateAccessToken,
   generateAccessTokenAdmin,

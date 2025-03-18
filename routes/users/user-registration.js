@@ -5,6 +5,7 @@ const cloudinary = require("../../config/cloudinary.config");
 const { sendOtp, VerifyOtp } = require("../../utils/otp.utils");
 const sendMessage = require("../../utils/nodemail");
 const console = require("debug")("development:mainroute");
+const {otpLimiter } = require("../../utils/rateLimiter");
 const router = express.Router();
 const {
   registerUser,
@@ -15,7 +16,7 @@ const {
 const { isLoggedIn } = require("../../middlewares/isLoggedIn");
 const adsModel = require("../../models/ads.models");
 
-router.post("/", registerUser);
+router.post("/",otpLimiter, registerUser);
 router.post("/verify", VerifyRegistration);
 router.post("/credentials", getRegistered);
 
