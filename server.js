@@ -101,13 +101,13 @@ app.use((err, req, res, next) => {
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Welcome to the API, testing the security",
+    message: "Morning, but hope so you will get hacked by aleem",
   });
 });
 app.get("/hello", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Hello from the API, but security risk",
+    message: "Security measures",
   });
 })
 
