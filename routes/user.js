@@ -30,7 +30,7 @@ const adsModel = require("../models/ads.models");
 router.post("/login", loginLimiter, loginUser);
 router.get("/profile", userLimiter, isLoggedIn, async (req, res) => {
   try {
-    const user = await userModel.find({ email: req.user.email });
+    const user = await userModel.findById(req.user.id);
     if (!user)
       return res
         .status(400)
@@ -99,7 +99,7 @@ router.get("/logout", userLimiter, isLoggedIn, (req, res) => {
 router.post("/password-reset", userLimiter, isLoggedIn, isUser, updatePassword);
 router.use("/dashboard", userLimiter, require("./users/user-dashboard"));
 router.use("/update", userLimiter, require("./users/user.updates"));
-router.use("/register", loginLimiter, require("./users/user-registration"));
+router.use("/register", userLimiter, require("./users/user-registration"));
 router.use("/forgot", userLimiter, require("./users/user-forgot"));
 router.use(
   "/post",

@@ -14,6 +14,11 @@ const adSchema = new mongoose.Schema({
   status: { type: String, enum: ["active", "sold", "inactive"], default: "active" },
   createdAt: { type: Date, default: Date.now },
   showNumber: { type: Boolean, default: false},
+  City: { type: String, default: "Karachi" },
+  Make: { type: String, default: "Honda" },
+  Model: { type: String, default: "Civic" },
+  Year: { type: String, default: "2023" },
+  Mileage: { type: String, default: "0" },
 });
 
 adSchema.index({ category: 1 }); 

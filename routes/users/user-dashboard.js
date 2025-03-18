@@ -19,9 +19,16 @@ const adsModel = require("../../models/ads.models");
 const {isUser }= require("../../middlewares/isUser");
 
 
-router.get("/", isLoggedIn, async (req, res) => {
-  res.status(200).json({ success: true, message: "User Dashboard" });
+router.get("/", async (req, res, next) => {
+  if (req.cookies.token || (req.session && req.session.token)) {
+    return isLoggedIn(req, res, () => {
+      res.status(200).json({ success: true, message: "User Dashboard", loggedIn: true, user: req.user });
+    });
+  }
+  res.status(200).json({ success: true, message: "Public Dashboard", loggedIn: false });
 });
+
+
 router.get("/sample/api", async(req, res) => {
  try
  {
