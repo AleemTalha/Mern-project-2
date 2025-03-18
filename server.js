@@ -119,7 +119,7 @@ app.use((req, res) => {
   res.status(404).json({
     success: false,
     message:
-      "Error 404! Not found. Sorry, the page you are looking for does not exist.",
+      "Error 404! Not found. Sorry, the page you are looking for does not exist. dont try to access it.",
   });
 });
 
