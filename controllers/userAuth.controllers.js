@@ -11,13 +11,11 @@ const {
 
 const registerUser = async (req, res, next) => {
   try {
-    let email , username, flag;
-    if(req.session && (req.session.email && req.session.username)){
+    let email, username, flag;
+    if (req.session && req.session.email && req.session.username) {
       email = req.session.email;
       username = req.session.username;
-    }
-    else
-    {
+    } else {
       email = req.body.email;
       firstName = req.body.firstName;
       lastName = req.body.lastName;
@@ -93,7 +91,13 @@ const registerUser = async (req, res, next) => {
         .json({ success: false, message: "Failed to send OTP" });
     req.session.email = email;
     req.session.username = username;
-    req.session.save();
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session Save Error: ", err);
+      } else {
+        console.log("Session Saved Successfully!");
+      }
+    });
     res.status(200).json({
       success: true,
       message: `OTP sent successfully at ${email}`,
