@@ -44,7 +44,10 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({ mongoUrl: MONGO_URI }),
+    store: MongoStore.create({
+      mongoUrl: MONGO_URI,
+      stringify: false,
+    }),
     cookie: {
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
@@ -52,6 +55,7 @@ app.use(
     },
   })
 );
+
 
 app.disable("x-powered-by");
 
