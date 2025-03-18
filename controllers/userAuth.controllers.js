@@ -89,13 +89,12 @@ const registerUser = async (req, res, next) => {
       return res
         .status(500)
         .json({ success: false, message: "Failed to send OTP" });
-    req.session.email = email;
-    req.session.username = username;
+    console.log("Session Before Save:", req.session);
     req.session.save((err) => {
       if (err) {
-        console.error("Session Save Error: ", err);
+        console.error("Session Save Error:", err);
       } else {
-        console.log("Session Saved Successfully!");
+        console.log("Session Saved Successfully!", req.session);
       }
     });
     res.status(200).json({
