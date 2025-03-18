@@ -156,6 +156,7 @@ const getRegistered = async (req, res, next) => {
       .status(200)
       .json({ success: true, message: "User registered successfully" });
   } catch (err) {
+    console.log("Get Registered Error:", err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
