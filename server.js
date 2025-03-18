@@ -19,7 +19,6 @@ const { adminLimiter, superAdminLimiter } = require("./utils/rateLimiter");
 
 const app = express();
 
-app.set("trust proxy", 1);
 app.use(morgan("tiny"));
 app.use(express.json());
 app.use(helmet());
