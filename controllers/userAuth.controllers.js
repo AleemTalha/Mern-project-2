@@ -4,6 +4,7 @@ const userModel = require("../models/userModel");
 const debug = require("debug")("development:auth");
 const { sendOtp, VerifyOtp } = require("../utils/otp.utils");
 const { otpLimiter } = require("../utils/rateLimiter");
+const mongoose = require("mongoose");
 const {
   generateAccessToken,
   generateAccessTokenAdmin,
@@ -98,7 +99,7 @@ const VerifyRegistration = async (req, res, next) => {
 
     if (!email) {
       const sessionData = await mongoose.connection.collection("sessions").findOne({
-        _id: req.sessionID, // Session ID se MongoDB me search karna
+        _id: req.sessionID,
       });
 
       if (sessionData) {
