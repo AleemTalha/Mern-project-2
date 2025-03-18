@@ -16,7 +16,7 @@ const {
 const { isLoggedIn } = require("../../middlewares/isLoggedIn");
 const adsModel = require("../../models/ads.models");
 
-router.post("/",otpLimiter, registerUser);
+router.post("/", registerUser, otpLimiter);
 router.post("/verify", VerifyRegistration);
 router.post("/credentials", getRegistered);
 
