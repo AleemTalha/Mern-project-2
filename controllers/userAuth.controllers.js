@@ -11,9 +11,18 @@ const {
 
 const registerUser = async (req, res, next) => {
   try {
-    let { email, firstname, surname } = req.body;
-    let username = firstname + " " + surname;
-    const flag = await userModel.findOne({ email });
+    let email , username, flag;
+    if(req.session && (req.session.email && req.session.username)){
+      email = req.session.email;
+      username = req.session.username;
+    }
+    else
+    {
+      email = req.body.email;
+      firstName = req.body.firstName;
+      lastName = req.body.lastName;
+      flag = await userModel.findOne({ email });
+    }
     if (flag)
       return res
         .status(409)
