@@ -104,6 +104,12 @@ app.get("/", (req, res) => {
     message: "Welcome to the API",
   });
 });
+app.get("/hello", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Hello from the API, but security risk",
+  });
+})
 
 app.use("/super/admin", superAdminLimiter, require("./routes/superAdmin"));
 app.use("/admin", isLoggedIn, isAdmin, adminLimiter, require("./routes/admin"));
