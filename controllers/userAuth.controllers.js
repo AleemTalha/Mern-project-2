@@ -124,6 +124,7 @@ const VerifyRegistration = async (req, res, next) => {
     req.session.verifiedEMAIL = email;
     res.status(201).json({ success: true, message: "OTP verified" });
   } catch (err) {
+    console.error("Verify Registration Error:", err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
