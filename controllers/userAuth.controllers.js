@@ -94,24 +94,40 @@ const registerUser = async (req, res, next) => {
 
 const VerifyRegistration = async (req, res, next) => {
   try {
+    let email = req.session.email;
+
+    if (!email) {
+      const sessionData = await mongoose.connection.collection("sessions").findOne({
+        _id: req.sessionID, // Session ID se MongoDB me search karna
+      });
+
+      if (sessionData) {
+        const parsedSession = JSON.parse(sessionData.session);
+        email = parsedSession.email;
+      }
+    }
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
     const { otp } = req.body;
-    const email = req.session.email;
-    if (!email)
-      return res
-        .status(400)
-        .json({ success: false, message: "Email is required" });
     const otpResponse = await VerifyOtp(email, otp);
+
     if (otpResponse === "OTP Expired")
       return res.status(410).json({ success: false, message: "OTP Expired" });
+
     if (otpResponse === "Invalid OTP") {
       return res.status(400).json({ success: false, message: "Invalid OTP" });
     }
+
     req.session.verifiedEMAIL = email;
     res.status(201).json({ success: true, message: "OTP verified" });
   } catch (err) {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 
 const getRegistered = async (req, res, next) => {
   try {
