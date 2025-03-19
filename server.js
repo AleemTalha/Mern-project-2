@@ -24,7 +24,7 @@ app.use(morgan("tiny"));
 app.use(express.json());
 app.use(helmet());
 // app.use(csrf());
-app.use(mongoSanitize());
+app.use(mongoSanitize())
 app.use(xssClean());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));

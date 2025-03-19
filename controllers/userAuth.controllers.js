@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const userModel = require("../models/userModel");
-const console = require("debug")("development:auth");
+const debug = require("debug")("development:auth");
 const { sendOtp, VerifyOtp } = require("../utils/otp.utils");
 const { otpLimiter } = require("../utils/rateLimiter");
 const {
@@ -11,8 +11,13 @@ const {
 
 const registerUser = async (req, res, next) => {
   try {
-    let { email, firstname, surname } = req.body;
-    let username = firstname + " " + surname;
+    let { email, firstName, lastName } = req.body;
+    let username = firstName + " " + lastName;
+    if(req.session.email && req.session.username)
+    {
+      email = req.session.email;
+      username = req.session.username
+    }
     const flag = await userModel.findOne({ email });
     if (flag)
       return res
@@ -90,6 +95,7 @@ const registerUser = async (req, res, next) => {
       email,
     });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
