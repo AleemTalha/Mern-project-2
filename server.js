@@ -107,9 +107,9 @@ app.use((err, req, res, next) => {
 
 app.get('/check-dev-mode', (req, res) => {
   if (process.env.NODE_ENV === 'development') {
-    console.log('Development mode');
+    res.send('Development mode');
   } else {
-    console.log('Production mode');
+    res.send('Production mode');
   }
 });
 
