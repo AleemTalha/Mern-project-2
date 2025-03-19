@@ -105,7 +105,13 @@ app.use((err, req, res, next) => {
   res.status(403).sendFile(path.join(__dirname, "views", "error.html"));
 });
 
-
+app.get('/check-dev-mode', (req, res) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Development mode');
+  } else {
+    console.log('Production mode');
+  }
+});
 
 app.get("/", (req, res) => {
   res.status(200).json({
