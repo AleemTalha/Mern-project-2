@@ -1,6 +1,6 @@
 const express = require("express");
 const helmet = require("helmet");
-const path = require("path")
+const path = require("path");
 const cors = require("cors");
 const compression = require("compression");
 const config = require("config");
@@ -12,7 +12,6 @@ const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const xssClean = require("xss-clean");
-// const csrf = require("csurf");
 const { isAdmin } = require("./middlewares/isAdmin");
 const { isLoggedIn } = require("./middlewares/isLoggedIn");
 const { adminLimiter, superAdminLimiter } = require("./utils/rateLimiter");
@@ -23,8 +22,7 @@ app.set("trust proxy", 1);
 app.use(morgan("tiny"));
 app.use(express.json());
 app.use(helmet());
-// app.use(csrf());
-app.use(mongoSanitize())
+app.use(mongoSanitize());
 app.use(xssClean());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -57,64 +55,48 @@ app.use(
   })
 );
 
-
-
 app.disable("x-powered-by");
 
 const FRONTEND_URLS = config.get("FRONT_END_URI");
 const allowedOrigins = Array.isArray(FRONTEND_URLS) ? FRONTEND_URLS : [FRONTEND_URLS];
 
-// app.use(
-//   cors({
-//     origin: function (origin, callback) {
-//       if (origin && allowedOrigins.includes(origin)) {
-//         callback(null, true);
-//       } else {
-//         callback(new Error("🚫 Not allowed by CORS"));
-//       }
-//     },
-//     credentials: true,
-//     methods: ["GET", "POST", "PUT", "DELETE"],
-//     allowedHeaders: ["Content-Type", "Authorization"],
-//   })
-// );
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("🚫 Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
-// app.use((req, res, next) => {
-//   try {
-//     const origin = req.headers.origin;
-//     const referer = req.headers.referer;
-
-//     if (!origin || !referer) {
-//       throw new Error("🚫 Unauthorized Request");
-//     }
-
-//     const isValidOrigin = allowedOrigins.includes(origin);
-//     const isValidReferer = allowedOrigins.some((url) => referer.startsWith(url));
-
-//     if (isValidOrigin && isValidReferer) {
-//       return next();
-//     }
-
-//     throw new Error("🚫 Unauthorized Request");
-//   } catch (err) {
-//     next(err);
-//   }
-// });
-
-app.use(cors({
-  origin:"*"
-}))
+app.use((req, res, next) => {
+  try {
+    if (!req.headers.origin || !req.headers.referer) {
+      throw new Error("🚫 Unauthorized Request");
+    }
+    const isValidOrigin = allowedOrigins.includes(req.headers.origin);
+    const isValidReferer = allowedOrigins.some((url) => req.headers.referer.startsWith(url));
+    if (isValidOrigin && isValidReferer) {
+      return next();
+    }
+    throw new Error("🚫 Unauthorized Request");
+  } catch (err) {
+    next(err);
+  }
+});
 
 app.use((err, req, res, next) => {
   res.status(403).sendFile(path.join(__dirname, "views", "error.html"));
 });
 
 app.get('/check-dev-mode', (req, res) => {
-  if (process.env.NODE_ENV === 'development') {
-    res.send('Development mode');
-  } else {
-    res.send('Production mode');
-  }
+  res.send(process.env.NODE_ENV === 'development' ? 'Development mode' : 'Production mode');
 });
 
 app.get("/", (req, res) => {
@@ -123,12 +105,13 @@ app.get("/", (req, res) => {
     message: "Morning, but hope so you will get hacked by aleem",
   });
 });
+
 app.get("/hello", (req, res) => {
   res.status(200).json({
     success: true,
     message: "Security measures",
   });
-})
+});
 
 app.use("/super/admin", superAdminLimiter, require("./routes/superAdmin"));
 app.use("/admin", isLoggedIn, isAdmin, adminLimiter, require("./routes/admin"));
@@ -137,8 +120,7 @@ app.use("/", require("./routes/user"));
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message:
-      "Error 404! Not found. Sorry, the page you are looking for does not exist. dont try to access it.",
+    message: "Error 404! Not found. Sorry, the page you are looking for does not exist. don't try to access it.",
   });
 });
 
