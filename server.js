@@ -64,42 +64,46 @@ app.disable("x-powered-by");
 const FRONTEND_URLS = config.get("FRONT_END_URI");
 const allowedOrigins = Array.isArray(FRONTEND_URLS) ? FRONTEND_URLS : [FRONTEND_URLS];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (origin && allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("🚫 Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+// app.use(
+//   cors({
+//     origin: function (origin, callback) {
+//       if (origin && allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error("🚫 Not allowed by CORS"));
+//       }
+//     },
+//     credentials: true,
+//     methods: ["GET", "POST", "PUT", "DELETE"],
+//     allowedHeaders: ["Content-Type", "Authorization"],
+//   })
+// );
 
-app.use((req, res, next) => {
-  try {
-    const origin = req.headers.origin;
-    const referer = req.headers.referer;
+// app.use((req, res, next) => {
+//   try {
+//     const origin = req.headers.origin;
+//     const referer = req.headers.referer;
 
-    if (!origin || !referer) {
-      throw new Error("🚫 Unauthorized Request");
-    }
+//     if (!origin || !referer) {
+//       throw new Error("🚫 Unauthorized Request");
+//     }
 
-    const isValidOrigin = allowedOrigins.includes(origin);
-    const isValidReferer = allowedOrigins.some((url) => referer.startsWith(url));
+//     const isValidOrigin = allowedOrigins.includes(origin);
+//     const isValidReferer = allowedOrigins.some((url) => referer.startsWith(url));
 
-    if (isValidOrigin && isValidReferer) {
-      return next();
-    }
+//     if (isValidOrigin && isValidReferer) {
+//       return next();
+//     }
 
-    throw new Error("🚫 Unauthorized Request");
-  } catch (err) {
-    next(err);
-  }
-});
+//     throw new Error("🚫 Unauthorized Request");
+//   } catch (err) {
+//     next(err);
+//   }
+// });
+
+app.use(cors({
+  origin:"*"
+}))
 
 app.use((err, req, res, next) => {
   res.status(403).sendFile(path.join(__dirname, "views", "error.html"));

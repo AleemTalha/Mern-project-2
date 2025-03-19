@@ -12,14 +12,15 @@ const {
 const registerUser = async (req, res, next) => {
   try {
     let { email, firstName, lastName } = req.body;
+    console.log(email)
     let username = firstName + " " + lastName;
     if(req.session.email && req.session.username)
     {
       email = req.session.email;
       username = req.session.username
     }
-    const flag = await userModel.findOne({ email });
-    if (flag)
+    const flag = await userModel.findOne({ email: req.body.email });
+    if (flag && flag.email === email)
       return res
         .status(409)
         .json({ success: false, message: "User already exists" });
