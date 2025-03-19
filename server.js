@@ -41,20 +41,22 @@ if (MONGO_URI.includes("<dbname>") && process.env.DB_NAME) {
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
+    secret: process.env.SESSION_SECRET, 
+    resave: false, 
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: MONGO_URI,
-      stringify: false,
+      mongoUrl: MONGO_URI, 
+      stringify: false, 
     }),
     cookie: {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", 
+      httpOnly: true, 
       sameSite: "strict",
+      maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })
 );
+
 
 
 app.disable("x-powered-by");
@@ -102,6 +104,7 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   res.status(403).sendFile(path.join(__dirname, "views", "error.html"));
 });
+
 
 
 app.get("/", (req, res) => {
