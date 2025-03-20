@@ -37,23 +37,30 @@ if (MONGO_URI.includes("<dbname>") && process.env.DB_NAME) {
   MONGO_URI = MONGO_URI.replace("<dbname>", process.env.DB_NAME);
 }
 
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
+
 app.use(
   session({
-    secret: process.env.SESSION_SECRET, 
-    resave: false, 
+    secret: process.env.SESSION_SECRET,
+    resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: MONGO_URI, 
-      stringify: false, 
+      mongoUrl: process.env.MONGO_URI,
+      collectionName: "sessions",
+      ttl: 7 * 24 * 60 * 60, // 7 days session expiry
+      autoRemove: "interval",
+      autoRemoveInterval: 10, // Every 10 minutes
     }),
     cookie: {
-      secure: process.env.NODE_ENV === "production", 
-      httpOnly: true, 
-      sameSite: "strict",
-      maxAge: 1000 * 60 * 60 * 24 * 7,
+      secure: false, // Temporarily false to debug
+      httpOnly: true,
+      sameSite: "lax", // Change to 'lax' if 'strict' causes issues
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     },
   })
 );
+
 
 app.disable("x-powered-by");
 
