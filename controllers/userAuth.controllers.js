@@ -188,7 +188,7 @@ const loginUser = async (req, res) => {
     }
     res
       .status(200)
-      .json({ success: true, message: "Login successful", role: flag.role });
+      .json({ success: true, message: `${flag.role} Login successful` });
   } catch (err) {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
