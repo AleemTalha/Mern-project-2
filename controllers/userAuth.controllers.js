@@ -153,8 +153,6 @@ const getRegistered = async (req, res, next) => {
 
 const loginUser = async (req, res) => {
   try {
-    console.log("Headers:", req.headers)
-    console.log("Body:", req.body)
     if (!req.body.email || !req.body.password) {
       return res.status(400).json({ error: "Missing credentials" })
     }
