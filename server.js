@@ -37,16 +37,13 @@ if (MONGO_URI.includes("<dbname>") && process.env.DB_NAME) {
   MONGO_URI = MONGO_URI.replace("<dbname>", process.env.DB_NAME);
 }
 
-const session = require("express-session");
-const MongoStore = require("connect-mongo");
-
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI,
+      mongoUrl: MONGO_URI,
       collectionName: "sessions",
       ttl: 7 * 24 * 60 * 60, // 7 days session expiry
       autoRemove: "interval",
