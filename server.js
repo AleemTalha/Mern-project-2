@@ -96,7 +96,7 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
-  console.log("Cookies received:", req.cookies);
+  console.log("🔍 Cookies Received:", req.headers.cookie || "❌ No Cookies Received");
   next();
 });
 
