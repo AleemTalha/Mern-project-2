@@ -64,6 +64,14 @@ app.disable("x-powered-by");
 const FRONTEND_URLS = config.get("FRONT_END_URI");
 const allowedOrigins = Array.isArray(FRONTEND_URLS) ? FRONTEND_URLS : [FRONTEND_URLS];
 
+app.use((req, res, next) => { 
+  if (req.method === "OPTIONS") {
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    return res.sendStatus(204);
+  }
+  next();
+});
+
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -78,6 +86,7 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization", "Cookie"], 
   })
 );
+
 
 app.use((req, res, next) => {
   try {
