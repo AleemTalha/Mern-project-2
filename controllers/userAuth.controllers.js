@@ -12,7 +12,6 @@ const {
 const registerUser = async (req, res, next) => {
   try {
     let { email, firstName, lastName } = req.body;
-    console.log(email)
     let username = firstName + " " + lastName;
     if(req.session.email && req.session.username)
     {
@@ -96,7 +95,6 @@ const registerUser = async (req, res, next) => {
       email,
     });
   } catch (err) {
-    console.log(err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };

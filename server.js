@@ -45,15 +45,15 @@ app.use(
     store: MongoStore.create({
       mongoUrl: MONGO_URI,
       collectionName: "sessions",
-      ttl: 7 * 24 * 60 * 60, // 7 days session expiry
+      ttl: 7 * 24 * 60 * 60,
       autoRemove: "interval",
-      autoRemoveInterval: 10, // Every 10 minutes
+      autoRemoveInterval: 10, 
     }),
     cookie: {
-      secure: true, // Temporarily false to debug
+      secure: process.env.NODE_ENV,
       httpOnly: true,
-      sameSite: "none", // Change to 'lax' if 'strict' causes issues
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      sameSite: "none", 
+      maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })
 );
@@ -95,10 +95,6 @@ app.use((req, res, next) => {
   }
 });
 
-app.use((req, res, next) => {
-  console.log("🔍 Cookies Received:", req.headers.cookie || "❌ No Cookies Received");
-  next();
-});
 
 app.use((err, req, res, next) => {
   res.status(403).sendFile(path.join(__dirname, "views", "error.html"));
