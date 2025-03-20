@@ -13,7 +13,7 @@ const registerUser = async (req, res, next) => {
   try {
     let { email, firstName, lastName } = req.body;
     let username = firstName + " " + lastName;
-    if(req.session.email && req.session.username)
+    if(req.session.email && req.session.username && !email)
     {
       email = req.session.email;
       username = req.session.username
