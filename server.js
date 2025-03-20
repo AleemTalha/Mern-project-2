@@ -95,6 +95,11 @@ app.use((req, res, next) => {
   }
 });
 
+app.use((req, res, next) => {
+  console.log("Cookies received:", req.cookies);
+  next();
+});
+
 app.use((err, req, res, next) => {
   res.status(403).sendFile(path.join(__dirname, "views", "error.html"));
 });
