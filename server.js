@@ -50,9 +50,9 @@ app.use(
       autoRemoveInterval: 10, // Every 10 minutes
     }),
     cookie: {
-      secure: false, // Temporarily false to debug
+      secure: true, // Temporarily false to debug
       httpOnly: true,
-      sameSite: "lax", // Change to 'lax' if 'strict' causes issues
+      sameSite: "none", // Change to 'lax' if 'strict' causes issues
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     },
   })
