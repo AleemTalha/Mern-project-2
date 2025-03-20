@@ -21,8 +21,7 @@ mongoose.connect(Mongo_URI, {
     // await reports.syncIndexes();
     // await superAdmin.syncIndexes();
     // await users.syncIndexes();
-
-    debug("Indexes synchronized");
+    // debug("Indexes synchronized");
   })
   .catch(err => {
     debug("Database connection error:", err);
