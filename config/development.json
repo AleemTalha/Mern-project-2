@@ -1,7 +1,8 @@
 {
-  "MONGO_URI": "mongodb+srv://<dbname>:<db_password>@cluster0.3mskd.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+  "MONGO_URI": "mongodb://localhost:27017/project-2",
   "FRONT_END_URI": [
     "http://192.168.100.123:5173",
+    "http://localhost:5173",
     "http://10.75.7.236:5173",
     "https://sell-sphere-tau.vercel.app"
   ]

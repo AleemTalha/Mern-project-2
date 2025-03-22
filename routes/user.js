@@ -17,6 +17,7 @@ const {
   singleLimiter,
 } = require("../utils/rateLimiter");
 exports.router = router;
+
 const {
   registerUser,
   VerifyRegistration,
@@ -26,26 +27,57 @@ const {
 const { isLoggedIn } = require("../middlewares/isLoggedIn");
 const adsModel = require("../models/ads.models");
 
-
 router.post("/login", loginLimiter, loginUser);
-router.get("/profile", userLimiter, isLoggedIn, async (req, res) => {
-  try {
-    const user = await userModel.findById(req.user.id);
-    if (!user)
-      return res
-        .status(400)
-        .json({ success: false, message: "User not found" });
-    res.json({ user });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+router.get("/auth/check-login", (req, res) => {
+  const token = req.cookies?.token;
+  const sessionUser = req.session?.user;
+
+  if (token || sessionUser) {
+    return res.json({
+      success: false,
+      message: "You are already logged in. Please logout first.",
+    });
   }
+
+  res.json({ success: true, message: "You can proceed to login." });
 });
+
+router.get(
+  "/profile/profile-id/:id",
+  userLimiter,
+  isLoggedIn,
+  async (req, res) => {
+    try {
+      const userId = req.params.id;
+      if (!userId)
+        return res
+          .status(400)
+          .json({ success: false, message: "User ID is required" });
+      const user = await userModel
+        .findById(userId)
+        .select("-password -recoveryEmail -recoveryPhone -createdAt -__v")
+        .populate("posts", "title price image");
+
+      if (!user)
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
+
+      res.json({ success: true, user });
+    } catch (err) {
+      res
+        .status(500)
+        .json({ success: false, message: "Internal Server Error" });
+    }
+  }
+);
+
 router.get("/application", async (req, res) => {
   res
     .status(200)
     .json({ success: true, message: "Application page is running" });
 });
-router.post("/application",reportLimiter, async (req, res) => {
+router.post("/application", reportLimiter, async (req, res) => {
   try {
     const { email, fullName, description } = req.body;
     const user = await userModel
@@ -56,13 +88,11 @@ router.post("/application",reportLimiter, async (req, res) => {
         .status(400)
         .json({ success: false, message: "User not found" });
     if (user.role === "admin")
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message:
-            "Admin cannot apply for an account open Application. Admins not allowed",
-        });
+      return res.status(400).json({
+        success: false,
+        message:
+          "Admin cannot apply for an account open Application. Admins not allowed",
+      });
     if (user.status === "active")
       return res.status(400).json({
         success: false,
@@ -85,6 +115,9 @@ router.post("/application",reportLimiter, async (req, res) => {
 });
 router.get("/logout", userLimiter, isLoggedIn, (req, res) => {
   res.clearCookie("token");
+  if (req.session.user) {
+    delete req.session.user;
+  }
   req.session.destroy((err) => {
     if (err)
       return res

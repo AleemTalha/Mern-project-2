@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const userModel = require("../models/userModel");
 const console = require("debug")("development:auth");
-
+    
 const isLoggedIn = async (req, res, next) => {
   if (req.session.user && req.session.token) {
     jwt.verify(req.session.token, process.env.ACCESS_TOKEN_SECRET);
@@ -13,12 +13,11 @@ const isLoggedIn = async (req, res, next) => {
   }
   try {
     let decoded = jwt.verify(req.cookies.token, process.env.ACCESS_TOKEN_SECRET);
-    let user = await userModel.findOne({ email: decoded.email, _id: decoded.id }).select("email fullname status role location");
+    let user = await userModel.findOne({_id: decoded.id }).select("email fullname status role location profileImage");
 
     if (!user) {
       return res.status(401).json({ success: false, message: "Unauthorized access, Invalid email", loggedIn: false });
     }
-
     req.session.user = Object.freeze(user);
     Object.defineProperty(req.session, "user", {
       value: user,
@@ -26,7 +25,6 @@ const isLoggedIn = async (req, res, next) => {
       configurable: false,
       enumerable: true,
     });
-
     req.user = user;
     next();
   } catch (err) {

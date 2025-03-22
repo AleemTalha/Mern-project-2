@@ -1,20 +1,15 @@
 const express = require("express");
 const helmet = require("helmet");
 const path = require("path");
-const cors = require("cors");
 const compression = require("compression");
 const config = require("config");
 require("dotenv").config();
-const mongoSanitize = require("express-mongo-sanitize");
 require("./config/mongoose-connection");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
-const xssClean = require("xss-clean");
-const { isAdmin } = require("./middlewares/isAdmin");
-const { isLoggedIn } = require("./middlewares/isLoggedIn");
-const { adminLimiter, superAdminLimiter } = require("./utils/rateLimiter");
+const cors = require("cors");
 
 const app = express();
 
@@ -22,8 +17,6 @@ app.set("trust proxy", 1);
 app.use(morgan("tiny"));
 app.use(express.json());
 app.use(helmet());
-app.use(mongoSanitize());
-app.use(xssClean());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(compression());
@@ -36,90 +29,36 @@ if (MONGO_URI.includes("<db_password>") && process.env.DB_PASSWORD) {
 if (MONGO_URI.includes("<dbname>") && process.env.DB_NAME) {
   MONGO_URI = MONGO_URI.replace("<dbname>", process.env.DB_NAME);
 }
-
 app.use(
   session({
-    secret: process.env.SESSION_SECRET,
+    secret: "your_secret_key",
     resave: false,
-    proxy: true,
     saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: MONGO_URI,
-      collectionName: "sessions",
-      ttl: 7 * 24 * 60 * 60,
-      autoRemove: "interval",
-      autoRemoveInterval: 10, 
-    }),
+    store: MongoStore.create({ mongoUrl: MONGO_URI }),
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
       httpOnly: true,
-      sameSite: "none", 
+      sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })
 );
 
-
-app.disable("x-powered-by");
-
-const FRONTEND_URLS = config.get("FRONT_END_URI");
-const allowedOrigins = Array.isArray(FRONTEND_URLS) ? FRONTEND_URLS : [FRONTEND_URLS];
-
-
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("🚫 Not allowed by CORS"));
-      }
-    },
+    origin: "http://localhost:5173",
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
   })
 );
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin || "http://localhost:5173");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Cookie");
+  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
   res.header("Access-Control-Allow-Credentials", "true");
-
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
-
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   next();
 });
 
-
-
-app.use((req, res, next) => {
-  try {
-    if (!req.headers.origin || !req.headers.referer) {
-      throw new Error("🚫 Unauthorized Request");
-    }
-    const isValidOrigin = allowedOrigins.includes(req.headers.origin);
-    const isValidReferer = allowedOrigins.some((url) => req.headers.referer.startsWith(url));
-    if (isValidOrigin && isValidReferer) {
-      return next();
-    }
-    throw new Error("🚫 Unauthorized Request");
-  } catch (err) {
-    next(err);
-  }
-});
-
-
-app.use((err, req, res, next) => {
-  res.status(403).sendFile(path.join(__dirname, "views", "error.html"));
-});
-
-app.get('/check-dev-mode', (req, res) => {
-  res.send(process.env.NODE_ENV === 'development' ? 'Development mode' : 'Production mode');
-});
 
 app.get("/", (req, res) => {
   res.status(200).json({
@@ -135,8 +74,6 @@ app.get("/hello", (req, res) => {
   });
 });
 
-app.use("/super/admin", superAdminLimiter, require("./routes/superAdmin"));
-app.use("/admin", isLoggedIn, isAdmin, adminLimiter, require("./routes/admin"));
 app.use("/", require("./routes/user"));
 
 app.use((req, res) => {
@@ -146,9 +83,7 @@ app.use((req, res) => {
   });
 });
 
-const host = process.env.HOST || "localhost";
 const port = process.env.PORT || 3001;
-
 const server = app.listen(port, () => {
   console.log(`Server running at port ${port}`);
 });

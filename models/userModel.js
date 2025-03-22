@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   recoveryEmail: { type: String, default: null },
   recoveryPhone: { type: String, default: null },
-  profileImage: { url: String, public_id: String },
+  profileImage: { url: { type: String, default:  `${process.env.FRONT_URI}/images/default.png` }, public_id: String },
   role: { type: String, enum: ["user", "admin"], default: "user" },
   phoneNo: { type: String },
   status: { type: String, enum: ["active", "inactive"], default: "active" },

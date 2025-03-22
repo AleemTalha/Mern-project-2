@@ -41,7 +41,7 @@ router.post("/profile/image",isLoggedIn,isUser,upload.single("image"),async (req
       });
       user.profileImage = {
         url: result.secure_url,
-        public_id: result.public_id,
+        public_id: result.public_id,  
       };
       await user.save();
 

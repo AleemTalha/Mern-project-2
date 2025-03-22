@@ -16,167 +16,206 @@ const {
 } = require("../../controllers/userAuth.controllers");
 const { isLoggedIn } = require("../../middlewares/isLoggedIn");
 const adsModel = require("../../models/ads.models");
-const {isUser }= require("../../middlewares/isUser");
-
+const { isUser } = require("../../middlewares/isUser");
 
 router.get("/", async (req, res, next) => {
-  if (req.cookies.token || (req.session && req.session.token)) {
+  if (req.cookies.token || (req.session && req.session.user)) {
     return isLoggedIn(req, res, () => {
-      res.status(200).json({ success: true, message: "User Dashboard", loggedIn: true, user: req.user });
+      res.status(200).json({
+        success: true,
+        message: "User Dashboard",
+        loggedIn: true,
+        user: req.user,
+      });
     });
   }
-  res.status(200).json({ success: true, message: "Public Dashboard", loggedIn: false });
+  res
+    .status(200)
+    .json({ success: true, message: "Public Dashboard", loggedIn: false });
 });
 
-
-router.get("/sample/api", async(req, res) => {
- try
- {
-  const recentAds = await adsModel.aggregate([
-    {$sort: {createdAt: -1}},
-    {$limit: 8}
-  ])
-  const MobileAds = await adsModel.aggregate([
-    {$match: {category: "mobile "}},
-    {$limit: 4},
-    {
-      $project:{
-        description:0,
-      }
-    }
-  ])
-  const carads = await adsModel.aggregate([
-    {$match: {category: "car"}},
-    {$limit: 4}
-  ])
-  const landads = await adsModel.aggregate([
-    {$match: {category: "house", subCategory: "plot"}},
-    {$limit: 4}
-  ])
-  const tabletads = await adsModel.aggregate([
-    {$match: {category: "phone", subCategory: "tablet"}},
-    {$limit: 4}
-  ])
-  const houses = await adsModel.aggregate([
-    {$match: {category: "house"}},
-    {$limit: 4}
-  ])
-  const bikeads = await adsModel.aggregate([
-    {$match: {category: "bike"}},
-    {$limit: 4}
-  ])
-
-  res.status(200).json({ success: true, recentAds, MobileAds, carads, houses, bikeads, landads, tabletads });
- }
- catch(error)
- {
-   res.status(500).json({ success: false, message: "Internal Server Error" });
- }
-})
-router.get("/api",isLoggedIn,isUser, async (req, res) => {
+router.get("/sample/api", async (req, res) => {
   try {
-    const [ lng, lat ] = req.user.location.coordinates;
-    // console("User Location", lng, lat);
-    // console("User Location", req.user.location.coordinates);
+    const recentAds = await adsModel.aggregate([
+      { $sort: { createdAt: -1 } },
+      { $limit: 8 },
+    ]);
+    const MobileAds = await adsModel.aggregate([
+      { $match: { category: "mobile " } },
+      { $limit: 4 },
+      {
+        $project: {
+          description: 0,
+        },
+      },
+    ]);
+    const carads = await adsModel.aggregate([
+      { $match: { category: "car" } },
+      { $limit: 4 },
+    ]);
+    const landads = await adsModel.aggregate([
+      { $match: { category: "house", subCategory: "plot" } },
+      { $limit: 4 },
+    ]);
+    const tabletads = await adsModel.aggregate([
+      { $match: { category: "phone", subCategory: "tablet" } },
+      { $limit: 4 },
+    ]);
+    const houses = await adsModel.aggregate([
+      { $match: { category: "house" } },
+      { $limit: 4 },
+    ]);
+    const bikeads = await adsModel.aggregate([
+      { $match: { category: "bike" } },
+      { $limit: 4 },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      recentAds,
+      MobileAds,
+      carads,
+      houses,
+      bikeads,
+      landads,
+      tabletads,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
+router.get("/api", isLoggedIn, isUser, async (req, res) => {
+  try {
+    const [lng, lat] = req.user.location.coordinates;
     const recentAds = await adsModel.aggregate([
       {
         $geoNear: {
-          near: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] },
+          near: {
+            type: "Point",
+            coordinates: [parseFloat(lng), parseFloat(lat)],
+          },
           distanceField: "distance",
           spherical: true,
         },
       },
       { $sort: { distance: 1, createdAt: -1 } },
-      { $limit: 8 }
+      { $limit: 8 },
     ]);
 
     const MobileAds = await adsModel.aggregate([
       {
         $geoNear: {
-          near: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] },
+          near: {
+            type: "Point",
+            coordinates: [parseFloat(lng), parseFloat(lat)],
+          },
           distanceField: "distance",
           spherical: true,
         },
       },
       { $match: { category: "mobile" } },
       { $sort: { distance: 1, createdAt: -1 } },
-      { $limit: 4 }
+      { $limit: 4 },
     ]);
 
     const carads = await adsModel.aggregate([
       {
         $geoNear: {
-          near: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] },
+          near: {
+            type: "Point",
+            coordinates: [parseFloat(lng), parseFloat(lat)],
+          },
           distanceField: "distance",
           spherical: true,
         },
       },
       { $match: { category: "car" } },
       { $sort: { distance: 1, createdAt: -1 } },
-      { $limit: 4 }
+      { $limit: 4 },
     ]);
 
     const landads = await adsModel.aggregate([
       {
         $geoNear: {
-          near: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] },
+          near: {
+            type: "Point",
+            coordinates: [parseFloat(lng), parseFloat(lat)],
+          },
           distanceField: "distance",
           spherical: true,
         },
       },
       { $match: { category: "house", subCategory: "plot" } },
       { $sort: { distance: 1, createdAt: -1 } },
-      { $limit: 4 }
+      { $limit: 4 },
     ]);
 
     const tabletads = await adsModel.aggregate([
       {
         $geoNear: {
-          near: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] },
+          near: {
+            type: "Point",
+            coordinates: [parseFloat(lng), parseFloat(lat)],
+          },
           distanceField: "distance",
           spherical: true,
         },
       },
       { $match: { category: "phone", subCategory: "tablet" } },
       { $sort: { distance: 1, createdAt: -1 } },
-      { $limit: 4 }
+      { $limit: 4 },
     ]);
 
     const houses = await adsModel.aggregate([
       {
         $geoNear: {
-          near: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] },
+          near: {
+            type: "Point",
+            coordinates: [parseFloat(lng), parseFloat(lat)],
+          },
           distanceField: "distance",
           spherical: true,
         },
       },
       { $match: { category: "house" } },
       { $sort: { distance: 1, createdAt: -1 } },
-      { $limit: 4 }
+      { $limit: 4 },
     ]);
 
     const bikeads = await adsModel.aggregate([
       {
         $geoNear: {
-          near: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] },
+          near: {
+            type: "Point",
+            coordinates: [parseFloat(lng), parseFloat(lat)],
+          },
           distanceField: "distance",
           spherical: true,
         },
       },
       { $match: { category: "bike" } },
       { $sort: { distance: 1, createdAt: -1 } },
-      { $limit: 4 }
+      { $limit: 4 },
     ]);
 
-    res.status(200).json({ success: true, recentAds, MobileAds, carads, houses, bikeads, landads, tabletads });
-
+    res.status(200).json({
+      success: true,
+      recentAds,
+      MobileAds,
+      carads,
+      houses,
+      bikeads,
+      landads,
+      tabletads,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
 router.get("/listings", isLoggedIn, isUser, async (req, res) => {
   try {
-    const { categorie, subcategorie, startPrice, lastPrice, lastId } = req.query;
+    const { categorie, subcategorie, startPrice, lastPrice, lastId } =
+      req.query;
     const [long, lat] = req.user.location.coordinates;
 
     const matchQuery = {
@@ -187,9 +226,9 @@ router.get("/listings", isLoggedIn, isUser, async (req, res) => {
     const maxPrice = parseFloat(lastPrice);
 
     if (!isNaN(minPrice) && !isNaN(maxPrice)) {
-      matchQuery.price = { 
-        $gte: minPrice, 
-        $lte: maxPrice 
+      matchQuery.price = {
+        $gte: minPrice,
+        $lte: maxPrice,
       };
     }
 
@@ -197,11 +236,13 @@ router.get("/listings", isLoggedIn, isUser, async (req, res) => {
       matchQuery._id = { $gt: new mongoose.Types.ObjectId(lastId) };
     }
 
-
     const ads = await adsModel.aggregate([
       {
         $geoNear: {
-          near: { type: "Point", coordinates: [parseFloat(long), parseFloat(lat)] },
+          near: {
+            type: "Point",
+            coordinates: [parseFloat(long), parseFloat(lat)],
+          },
           distanceField: "distance",
           spherical: true,
         },
@@ -213,11 +254,11 @@ router.get("/listings", isLoggedIn, isUser, async (req, res) => {
 
     res.status(200).json({ success: true, ads });
   } catch (err) {
-    console(err); 
+    console(err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
-router.get("/items/:id",isLoggedIn, isUser, async (req, res) => {
+router.get("/items/:id", isLoggedIn, isUser, async (req, res) => {
   const { id } = req.params;
   try {
     const ad = await adsModel.findById(id);
@@ -225,19 +266,19 @@ router.get("/items/:id",isLoggedIn, isUser, async (req, res) => {
       return res.status(404).json({ success: false, message: "Ad not found" });
     }
     res.status(200).json({ success: true, ad });
-  }
-  catch(err)
-  {
-    console(err)
+  } catch (err) {
+    console(err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
-})
+});
 router.post("/item/report", isLoggedIn, isUser, async (req, res) => {
   const { title, issue, createdBy, type, id } = req.query;
   const { description } = req.body;
 
   if (!title || !issue || !createdBy || !type || !id) {
-    return res.status(400).json({ success: false, message: "Missing required fields" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Missing required fields" });
   }
 
   try {
@@ -251,13 +292,13 @@ router.post("/item/report", isLoggedIn, isUser, async (req, res) => {
     });
 
     await report.save();
-    res.status(201).json({ success: true, message: "Report submitted successfully" });
+    res
+      .status(201)
+      .json({ success: true, message: "Report submitted successfully" });
   } catch (err) {
     console(err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
-
-
 
 module.exports = router;
