@@ -2,61 +2,118 @@ const express = require("express");
 const router = express.Router();
 const isLoggedIn = require("../../middlewares/isLoggedIn");
 const userModel = require("../../models/userModel");
-const adsModel = require("../../models/ads.models");
 const upload = require("../../config/multer-config");
 const cloudinary = require("../../config/cloudinary.config");
-const console = require("debug")("development:user-posts");
 
-router.get("/", async (req, res) => {
-  res.status(200).json({ success: true, message: "Welcome to user posts" });
+const Ads = require("../../models/ads.models"); 
+const CarAds = require("../../models/carAds");  
+const HouseAds = require("../../models/houseAd");
+
+router.get("/",(req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Welcome to user posts route",
+    loggedIn : true,
+
+  });
 });
+
 router.post("/attributes", async (req, res) => {
   try {
     const { category, subCategory } = req.body;
     if (!category || !subCategory) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Please provide category and subcategory",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Please provide category and subcategory",
+      });
     }
     req.session.product = { category, subCategory };
     req.session.save();
-    // console("Session", req.session);
-
-    // setTimeout(() => {
-    //   if (req.session) delete req.session.product;
-    // }, 2 * 60 * 60 * 1000);
-    res
-      .status(200)
-      .json({ success: true, message: "Attributes set successfully" });
+    
+    // Auto-delete after 2 hours
+    setTimeout(() => {
+      if (req.session) delete req.session.product;
+    }, 2 * 60 * 60 * 1000);
+    
+    res.status(200).json({ success: true, message: "Attributes set successfully" });
   } catch (err) {
-    // console(err)
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
+
 router.post("/ads", upload.single("image"), async (req, res) => {
   try {
-    const { title, condition, price, PhoneNumber, showNumber, description } = req.body;
-    
-    if (!title || !condition || !price || !PhoneNumber || !showNumber || !description) {
-      return res.status(400).json({ success: false, message: "Please provide all required details" });
-    }
+    const {
+      title,
+      condition,
+      price,
+      phoneNumber,
+      showNumber,
+      description,
+      Make,
+      Model,
+      Year,
+      Mileage,
+      Area,
+      Rooms,
+    } = req.body;
 
     if (!req.session.product) {
-      return res.status(400).json({ success: false, message: "Please provide category and subcategory" });
+      return res.status(400).json({
+        success: false,
+        message: "Please provide category and subcategory",
+      });
     }
 
     const { category, subCategory } = req.session.product;
-    
+
+    if (!["Cars", "Houses"].includes(category)) {
+      return res.status(400).json({ success: false, message: "Invalid category" });
+    }
+
+    const requiredFields = {
+      title: "Title",
+      condition: "Condition",
+      price: "Price",
+      phoneNumber: "Phone Number",
+      showNumber: "Show Number",
+      description: "Description",
+      ...(category === "Cars" && {
+        Make: "Make",
+        Model: "Model",
+        Year: "Year",
+        Mileage: "Mileage",
+      }),
+      ...(category === "Houses" && {
+        Area: "Area",
+        Rooms: "Rooms",
+      }),
+    };
+
+    const missingFields = Object.keys(requiredFields).filter(
+      (key) => !req.body[key]
+    );
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Please provide: ${missingFields
+          .map((key) => requiredFields[key])
+          .join(", ")}`,
+      });
+    }
+
     const user = await userModel.findById(req.user._id);
+
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
     if (!user.location?.coordinates) {
-      return res.status(400).json({ success: false, message: "User location is required" });
+      return res.status(400).json({
+        success: false,
+        message: "User location is required",
+      });
     }
 
     if (!req.file || !req.file.buffer) {
@@ -64,17 +121,22 @@ router.post("/ads", upload.single("image"), async (req, res) => {
     }
 
     if (req.file.size > 10000000) {
-      return res.status(400).json({ success: false, message: "Image size should be less than 500KB" });
+      return res.status(400).json({
+        success: false,
+        message: "Image size should be less than 10MB",
+      });
     }
 
     const result = await new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream({ resource_type: "image" }, (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
-      }).end(req.file.buffer);
+      cloudinary.uploader
+        .upload_stream({ resource_type: "image" }, (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        })
+        .end(req.file.buffer);
     });
 
-    const newAd = new adsModel({
+    let adData = {
       title,
       condition,
       description,
@@ -82,23 +144,37 @@ router.post("/ads", upload.single("image"), async (req, res) => {
       price,
       category,
       subCategory,
-      contactNumber: PhoneNumber,
+      contactNumber: phoneNumber,
       status: "active",
       postedBy: user._id,
       image: { url: result.secure_url, public_id: result.public_id },
       showNumber: !!showNumber,
-    });
+    };
 
+    let AdModel = Ads;
+
+    if (category === "Cars") {
+      adData = { ...adData, Make, Model, Year, Mileage };
+      AdModel = CarAds;
+    } else if (category === "Houses") {
+      adData = { ...adData, Area, Rooms };
+      AdModel = HouseAds;
+    }
+
+    const newAd = new AdModel(adData);
     await newAd.save();
 
     user.posts.push(newAd._id);
     await user.save();
 
-    delete req.session.product;
+    // delete req.session.product;
 
-    res.status(200).json({ success: true, message: "Ad posted successfully, Images uploaded" });
-
+    res.status(200).json({
+      success: true,
+      message: "Ad posted successfully, Images uploaded",
+    });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });

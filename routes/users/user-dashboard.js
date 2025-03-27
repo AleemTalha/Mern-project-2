@@ -23,7 +23,7 @@ router.get("/", async (req, res, next) => {
     return isLoggedIn(req, res, () => {
       res.status(200).json({
         success: true,
-        message: "User Dashboard",
+        message: "Auth Dashboard",
         loggedIn: true,
         user: req.user,
       });
@@ -36,39 +36,20 @@ router.get("/", async (req, res, next) => {
 
 router.get("/sample/api", async (req, res) => {
   try {
-    const recentAds = await adsModel.aggregate([
-      { $sort: { createdAt: -1 } },
-      { $limit: 8 },
-    ]);
-    const MobileAds = await adsModel.aggregate([
-      { $match: { category: "mobile " } },
-      { $limit: 4 },
-      {
-        $project: {
-          description: 0,
-        },
-      },
-    ]);
-    const carads = await adsModel.aggregate([
-      { $match: { category: "car" } },
-      { $limit: 4 },
-    ]);
-    const landads = await adsModel.aggregate([
-      { $match: { category: "house", subCategory: "plot" } },
-      { $limit: 4 },
-    ]);
-    const tabletads = await adsModel.aggregate([
-      { $match: { category: "phone", subCategory: "tablet" } },
-      { $limit: 4 },
-    ]);
-    const houses = await adsModel.aggregate([
-      { $match: { category: "house" } },
-      { $limit: 4 },
-    ]);
-    const bikeads = await adsModel.aggregate([
-      { $match: { category: "bike" } },
-      { $limit: 4 },
-    ]);
+    const recentAds = await adsModel.find().sort({ createdAt: -1 }).limit(8);
+    const MobileAds = await adsModel
+      .find({ category: "mobile" })
+      .limit(4)
+      .select("-description");
+    const carads = await adsModel.find({ category: "car" }).limit(4);
+    const landads = await adsModel
+      .find({ category: "house", subCategory: "plot" })
+      .limit(4);
+    const tabletads = await adsModel
+      .find({ category: "phone", subCategory: "tablet" })
+      .limit(4);
+    const houses = await adsModel.find({ category: "house" }).limit(4);
+    const bikeads = await adsModel.find({ category: "bike" }).limit(4);
 
     res.status(200).json({
       success: true,
@@ -87,6 +68,12 @@ router.get("/sample/api", async (req, res) => {
 router.get("/api", isLoggedIn, isUser, async (req, res) => {
   try {
     const [lng, lat] = req.user.location.coordinates;
+    if (!lng || !lat) {
+      return res.status(400).json({
+        success: false,
+        message: "Please Provide your Location for fetching the data",
+      });
+    }
     const recentAds = await adsModel.aggregate([
       {
         $geoNear: {
@@ -209,9 +196,11 @@ router.get("/api", isLoggedIn, isUser, async (req, res) => {
       tabletads,
     });
   } catch (error) {
+    console(error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
+
 router.get("/listings", isLoggedIn, isUser, async (req, res) => {
   try {
     const { categorie, subcategorie, startPrice, lastPrice, lastId } =

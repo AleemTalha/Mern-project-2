@@ -56,7 +56,7 @@ router.get(
       const user = await userModel
         .findById(userId)
         .select("-password -recoveryEmail -recoveryPhone -createdAt -__v")
-        .populate("posts", "title price image");
+        .populate("posts", "title price image description");
 
       if (!user)
         return res
@@ -65,6 +65,7 @@ router.get(
 
       res.json({ success: true, user });
     } catch (err) {
+      console(err);
       res
         .status(500)
         .json({ success: false, message: "Internal Server Error" });
