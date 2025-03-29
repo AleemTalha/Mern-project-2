@@ -8,6 +8,7 @@ const sendMessage = require("../../utils/nodemail");
 const console = require("debug")("development:mainroute");
 const reportModel = require("../../models/report.model");
 const router = express.Router();
+const { userReportLimiter } = require("../../utils/rateLimiter");
 const {
   registerUser,
   VerifyRegistration,
@@ -158,7 +159,7 @@ router.post("/api", isLoggedIn, isUser, async (req, res) => {
 
 router.get("/listings", isLoggedIn, isUser, async (req, res) => {
   try {
-    const { categorie, subcategorie, startPrice, lastPrice, lastId } =
+    const { categorie, subcategorie, startPrice, lastPrice, lastId, firstId } =
       req.query;
     const [long, lat] = req.user.location.coordinates;
 
@@ -166,39 +167,139 @@ router.get("/listings", isLoggedIn, isUser, async (req, res) => {
       ...(categorie && { category: categorie }),
       ...(subcategorie && { subCategory: subcategorie }),
     };
+
     const minPrice = parseFloat(startPrice);
     const maxPrice = parseFloat(lastPrice);
 
     if (!isNaN(minPrice) && !isNaN(maxPrice)) {
-      matchQuery.price = {
-        $gte: minPrice,
-        $lte: maxPrice,
-      };
+      matchQuery.price = { $gte: minPrice, $lte: maxPrice };
+    } else if (!isNaN(minPrice)) {
+      matchQuery.price = { $gte: minPrice };
+    } else if (!isNaN(maxPrice)) {
+      matchQuery.price = { $lte: maxPrice };
     }
 
-    if (lastId) {
-      matchQuery._id = { $gt: new mongoose.Types.ObjectId(lastId) };
-    }
+    let ads = [];
+    let newFirstId = firstId;
 
-    const ads = await adsModel.aggregate([
-      {
-        $geoNear: {
-          near: {
-            type: "Point",
-            coordinates: [parseFloat(long), parseFloat(lat)],
+    if (!lastId && !firstId) {
+      const totalAds = await adsModel.countDocuments(matchQuery);
+      if (totalAds === 0) {
+        return res.status(200).json({ success: true, ads: [], lastAd: true });
+      }
+
+      const randomIndex = Math.floor(Math.random() * totalAds);
+
+      ads = await adsModel.aggregate([
+        {
+          $geoNear: {
+            near: {
+              type: "Point",
+              coordinates: [parseFloat(long), parseFloat(lat)],
+            },
+            distanceField: "distance",
+            spherical: true,
           },
-          distanceField: "distance",
-          spherical: true,
         },
-      },
-      { $match: matchQuery },
-      { $sort: { distance: 1, createdAt: -1 } },
-      { $limit: 5 },
-    ]);
+        { $match: matchQuery },
+        { $sort: { _id: 1 } },
+        { $skip: randomIndex },
+        { $limit: 4 },
+      ]);
 
-    res.status(200).json({ success: true, ads });
+      if (ads.length < 4) {
+        const remaining = 4 - ads.length;
+        const additionalAds = await adsModel.aggregate([
+          {
+            $geoNear: {
+              near: {
+                type: "Point",
+                coordinates: [parseFloat(long), parseFloat(lat)],
+              },
+              distanceField: "distance",
+              spherical: true,
+            },
+          },
+          { $match: matchQuery },
+          { $sort: { _id: 1 } },
+          { $limit: remaining },
+        ]);
+        ads = [...ads, ...additionalAds];
+      }
+
+      if (ads.length > 0) newFirstId = ads[0]._id;
+    } else {
+      ads = await adsModel.aggregate([
+        {
+          $geoNear: {
+            near: {
+              type: "Point",
+              coordinates: [parseFloat(long), parseFloat(lat)],
+            },
+            distanceField: "distance",
+            spherical: true,
+          },
+        },
+        {
+          $match: {
+            ...matchQuery,
+            ...(lastId && {
+              _id: { $gt: new mongoose.Types.ObjectId(lastId) },
+            }),
+          },
+        },
+        { $sort: { _id: 1 } },
+        { $limit: 4 },
+      ]);
+
+      if (ads.length === 0 && firstId) {
+        ads = await adsModel.aggregate([
+          {
+            $geoNear: {
+              near: {
+                type: "Point",
+                coordinates: [parseFloat(long), parseFloat(lat)],
+              },
+              distanceField: "distance",
+              spherical: true,
+            },
+          },
+          {
+            $match: {
+              ...matchQuery,
+              _id: { $lte: new mongoose.Types.ObjectId(firstId) },
+            },
+          },
+          { $sort: { _id: 1 } },
+          { $limit: 4 },
+        ]);
+      }
+    }
+
+    const uniqueAds = ads.filter(
+      (ad, index, self) =>
+        index === self.findIndex((t) => t._id.toString() === ad._id.toString())
+    );
+
+    if (firstId) {
+      const firstIdIndex = uniqueAds.findIndex(
+        (ad) => ad._id.toString() === firstId
+      );
+      if (firstIdIndex !== -1) {
+        uniqueAds.splice(firstIdIndex, uniqueAds.length - firstIdIndex);
+      }
+    }
+
+    const isLastAd = uniqueAds.length < 4;
+
+    res.status(200).json({
+      success: true,
+      ads: uniqueAds,
+      lastAd: isLastAd,
+      firstId: newFirstId,
+    });
   } catch (err) {
-    console(err);
+    console.error(err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
@@ -217,34 +318,42 @@ router.get("/items/:id", isLoggedIn, isUser, async (req, res) => {
   }
 });
 
-router.post("/item/report", isLoggedIn, isUser, async (req, res) => {
-  const { title, issue, createdBy, type, id } = req.query;
-  const { description } = req.body;
+router.post(
+  "/item/report",
+  isLoggedIn,
+  isUser,
+  userReportLimiter,
+  async (req, res) => {
+    const { title, issue, createdBy, type, id } = req.body;
+    const { description } = req.body;
+    if (!title || !issue || !createdBy || !type || !id) {
+      console(req.body);
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
 
-  if (!title || !issue || !createdBy || !type || !id) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Missing required fields" });
+    try {
+      const report = new reportModel({
+        title,
+        description,
+        issue,
+        createdBy: new mongoose.Types.ObjectId(createdBy),
+        type,
+        id: new mongoose.Types.ObjectId(id),
+      });
+
+      await report.save();
+      res
+        .status(201)
+        .json({ success: true, message: "Report submitted successfully" });
+    } catch (err) {
+      console(err);
+      res
+        .status(500)
+        .json({ success: false, message: "Internal Server Error" });
+    }
   }
-
-  try {
-    const report = new reportModel({
-      title,
-      description,
-      issue,
-      createdBy: new mongoose.Types.ObjectId(createdBy),
-      type,
-      id: new mongoose.Types.ObjectId(id),
-    });
-
-    await report.save();
-    res
-      .status(201)
-      .json({ success: true, message: "Report submitted successfully" });
-  } catch (err) {
-    console(err);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-});
+);
 
 module.exports = router;

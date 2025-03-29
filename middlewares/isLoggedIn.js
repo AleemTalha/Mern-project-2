@@ -9,7 +9,7 @@ const isLoggedIn = async (req, res, next) => {
     return next();
   }
   if (!req.cookies.token) {
-    return res.status(401).json({ success: false, message: "Unauthorized access", loggedIn: false });
+      
   }
   try {
     let decoded = jwt.verify(req.cookies.token, process.env.ACCESS_TOKEN_SECRET);

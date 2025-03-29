@@ -99,9 +99,21 @@ const superAdminLoginLimiter = rateLimit({
   },
 });
 
+const userReportLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      message: "Too many Reporting attempts. Please try again later."
+    });
+  },
+});
+
 module.exports = {
   userLimiter,
   adminLimiter,
+  userReportLimiter,
   loginLimiter,
   passwordResetLimiter,
   singleLimiter,

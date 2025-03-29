@@ -24,7 +24,6 @@ const reportSchema = new Schema({
   },
   type: {
     type: String,
-    enum: ["user", "ads"],
     required: true,
   },
   issue: {
