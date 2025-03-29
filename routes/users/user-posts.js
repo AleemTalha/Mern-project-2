@@ -4,17 +4,15 @@ const isLoggedIn = require("../../middlewares/isLoggedIn");
 const userModel = require("../../models/userModel");
 const upload = require("../../config/multer-config");
 const cloudinary = require("../../config/cloudinary.config");
-
-const Ads = require("../../models/ads.models"); 
-const CarAds = require("../../models/carAds");  
+const Ads = require("../../models/ads.models");
+const CarAds = require("../../models/carAds");
 const HouseAds = require("../../models/houseAd");
 
-router.get("/",(req, res) => {
+router.get("/", (req, res) => {
   res.status(200).json({
     success: true,
     message: "Welcome to user posts route",
-    loggedIn : true,
-
+    loggedIn: true,
   });
 });
 
@@ -29,13 +27,12 @@ router.post("/attributes", async (req, res) => {
     }
     req.session.product = { category, subCategory };
     req.session.save();
-    
-    // Auto-delete after 2 hours
     setTimeout(() => {
       if (req.session) delete req.session.product;
     }, 2 * 60 * 60 * 1000);
-    
-    res.status(200).json({ success: true, message: "Attributes set successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "Attributes set successfully" });
   } catch (err) {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
@@ -56,7 +53,16 @@ router.post("/ads", upload.single("image"), async (req, res) => {
       Mileage,
       Area,
       Rooms,
+      latitude,
+      longitude,
     } = req.body;
+
+    if (!latitude || !longitude) {
+      return res.status(400).json({
+        success: false,
+        message: "Location data is missing. Cannot submit ad.",
+      });
+    }
 
     if (!req.session.product) {
       return res.status(400).json({
@@ -66,10 +72,6 @@ router.post("/ads", upload.single("image"), async (req, res) => {
     }
 
     const { category, subCategory } = req.session.product;
-
-    if (!["Cars", "Houses"].includes(category)) {
-      return res.status(400).json({ success: false, message: "Invalid category" });
-    }
 
     const requiredFields = {
       title: "Title",
@@ -106,18 +108,15 @@ router.post("/ads", upload.single("image"), async (req, res) => {
     const user = await userModel.findById(req.user._id);
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
-
-    if (!user.location?.coordinates) {
-      return res.status(400).json({
-        success: false,
-        message: "User location is required",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     if (!req.file || !req.file.buffer) {
-      return res.status(400).json({ success: false, message: "No file uploaded" });
+      return res
+        .status(400)
+        .json({ success: false, message: "No file uploaded" });
     }
 
     if (req.file.size > 10000000) {
@@ -140,7 +139,10 @@ router.post("/ads", upload.single("image"), async (req, res) => {
       title,
       condition,
       description,
-      location: { type: "Point", coordinates: user.location.coordinates },
+      location: {
+        type: "Point",
+        coordinates: [parseFloat(longitude), parseFloat(latitude)],
+      },
       price,
       category,
       subCategory,
@@ -167,17 +169,15 @@ router.post("/ads", upload.single("image"), async (req, res) => {
     user.posts.push(newAd._id);
     await user.save();
 
-    // delete req.session.product;
+    delete req.session.product;
 
     res.status(200).json({
       success: true,
       message: "Ad posted successfully, Images uploaded",
     });
   } catch (err) {
-    console.log(err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
-
 
 module.exports = router;

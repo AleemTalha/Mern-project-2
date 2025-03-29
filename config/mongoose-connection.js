@@ -11,11 +11,14 @@ let Mongo_URI = config.get("MONGO_URI");
 Mongo_URI = Mongo_URI.replace("<db_password>", process.env.DB_PASSWORD);
 Mongo_URI = Mongo_URI.replace("<dbname>", process.env.DB_NAME);
 
-mongoose.connect(Mongo_URI, {
-})
+mongoose
+  .connect(Mongo_URI, {
+    maxPoolSize: 50,
+    serverSelectionTimeoutMS: 3000,
+    socketTimeoutMS: 30000,
+  })
   .then(async () => {
     debug("Connected to database");
-
     // await ads.syncIndexes();
     // await applications.syncIndexes();
     // await reports.syncIndexes();
@@ -23,8 +26,8 @@ mongoose.connect(Mongo_URI, {
     // await users.syncIndexes();
     // debug("Indexes synchronized");
   })
-  .catch(err => {
+  .catch((err) => {
     debug("Database connection error:", err);
   });
 
-module.exports = mongoose; 
+module.exports = mongoose;

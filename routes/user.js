@@ -1,5 +1,6 @@
 const express = require("express");
 const userModel = require("../models/userModel");
+const adsModel = require("../models/ads.models");
 const upload = require("../config/multer-config");
 const cloudinary = require("../config/cloudinary.config");
 const { sendOtp, VerifyOtp } = require("../utils/otp.utils");
@@ -25,7 +26,6 @@ const {
   loginUser,
 } = require("../controllers/userAuth.controllers");
 const { isLoggedIn } = require("../middlewares/isLoggedIn");
-const adsModel = require("../models/ads.models");
 
 router.post("/login", loginLimiter, loginUser);
 router.get("/auth/check-login", (req, res) => {
@@ -43,29 +43,81 @@ router.get("/auth/check-login", (req, res) => {
 });
 
 router.get(
-  "/profile/profile-id/:id",
+  "/profile/profile-id/:id/:lastId?",
   userLimiter,
   isLoggedIn,
   async (req, res) => {
     try {
       const userId = req.params.id;
+      const lastId = req.params.lastId;
+      const limit = 4;
+
       if (!userId)
         return res
           .status(400)
           .json({ success: false, message: "User ID is required" });
+
       const user = await userModel
         .findById(userId)
         .select("-password -recoveryEmail -recoveryPhone -createdAt -__v")
-        .populate("posts", "title price image description");
+        .populate({
+          path: "posts",
+          select: "title price image description",
+          match: lastId ? { _id: { $gt: lastId } } : {},
+          options: { limit, sort: { _id: 1 } },
+        });
 
       if (!user)
         return res
           .status(404)
           .json({ success: false, message: "User not found" });
 
-      res.json({ success: true, user });
+      const lastOne = user.posts.length < limit;
+
+      res.json({ success: true, user, lastOne });
     } catch (err) {
-      console(err);
+      console.error(err);
+      res
+        .status(500)
+        .json({ success: false, message: "Internal Server Error" });
+    }
+  }
+);
+
+router.get(
+  "/profile/delete/:postId",
+  userLimiter,
+  isLoggedIn,
+  async (req, res) => {
+    const { postId } = req.params;
+    const userId = req.user._id;
+    try {
+      const user = await userModel.findById(userId).select("posts");
+      if (!user || !user.posts.includes(postId)) {
+        return res.status(403).json({
+          success: false,
+          message: "You are not authorized to delete this post.",
+        });
+      }
+      const post = await adsModel.findById(postId);
+      if (!post) {
+        return res.status(404).json({
+          success: false,
+          message: "Post not found or already deleted.",
+        });
+      }
+      if (post.image?.public_id) {
+        await cloudinary.uploader.destroy(post.image.public_id);
+      }
+      user.posts = user.posts.filter((id) => id.toString() !== postId);
+      await user.save();
+      await adsModel.findByIdAndDelete(postId);
+      res.status(200).json({
+        success: true,
+        message: "Post and associated image deleted successfully.",
+      });
+    } catch (err) {
+      console.error(err);
       res
         .status(500)
         .json({ success: false, message: "Internal Server Error" });

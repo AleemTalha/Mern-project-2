@@ -36,167 +36,122 @@ router.get("/", async (req, res, next) => {
 
 router.get("/sample/api", async (req, res) => {
   try {
-    const recentAds = await adsModel.find().sort({ createdAt: -1 }).limit(8);
-    const MobileAds = await adsModel
-      .find({ category: "mobile" })
-      .limit(4)
-      .select("-description");
-    const carads = await adsModel.find({ category: "car" }).limit(4);
-    const landads = await adsModel
-      .find({ category: "house", subCategory: "plot" })
-      .limit(4);
-    const tabletads = await adsModel
-      .find({ category: "phone", subCategory: "tablet" })
-      .limit(4);
-    const houses = await adsModel.find({ category: "house" }).limit(4);
-    const bikeads = await adsModel.find({ category: "bike" }).limit(4);
+    const categories = [
+      { category: "Mobile Phones", limit: 5 },
+      { category: "Cars", limit: 5 },
+      { category: "House", subCategory: "Apartments", limit: 5 },
+      { category: "Mobile Phones", subCategory: "Foldable Phones", limit: 5 },
+      { category: "House", limit: 5 },
+      { category: "Beauty Products", limit: 5 },
+    ];
+
+    const recentAds = await adsModel.aggregate([{ $sample: { size: 4 } }]);
+    const randomAds = await adsModel.aggregate([
+      { $match: { _id: { $nin: recentAds.map((ad) => ad._id) } } },
+      { $sample: { size: 4 } },
+    ]);
+
+    const categoryData = await Promise.all(
+      categories.map(({ category, subCategory, limit }) =>
+        adsModel.aggregate([
+          { $match: { category, ...(subCategory && { subCategory }) } },
+          { $sample: { size: limit } },
+        ])
+      )
+    );
 
     res.status(200).json({
       success: true,
-      recentAds,
-      MobileAds,
-      carads,
-      houses,
-      bikeads,
-      landads,
-      tabletads,
+      recentAds: [...recentAds, ...randomAds],
+      mobilePhones: categoryData[0],
+      cars: categoryData[1],
+      apartments: categoryData[2],
+      foldablePhones: categoryData[3],
+      houses: categoryData[4],
+      beautyProducts: categoryData[5],
     });
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
-router.get("/api", isLoggedIn, isUser, async (req, res) => {
+
+router.post("/api", isLoggedIn, isUser, async (req, res) => {
   try {
-    const [lng, lat] = req.user.location.coordinates;
-    if (!lng || !lat) {
-      return res.status(400).json({
-        success: false,
-        message: "Please Provide your Location for fetching the data",
-      });
+    let { lon, lat } = req.body;
+    if (!lon || !lat) {
+      if (req.user.location?.coordinates) {
+        [lon, lat] = req.user.location.coordinates;
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Please provide location data (longitude and latitude).",
+        });
+      }
     }
-    const recentAds = await adsModel.aggregate([
-      {
-        $geoNear: {
-          near: {
-            type: "Point",
-            coordinates: [parseFloat(lng), parseFloat(lat)],
-          },
-          distanceField: "distance",
-          spherical: true,
-        },
-      },
-      { $sort: { distance: 1, createdAt: -1 } },
-      { $limit: 8 },
-    ]);
 
-    const MobileAds = await adsModel.aggregate([
-      {
-        $geoNear: {
-          near: {
-            type: "Point",
-            coordinates: [parseFloat(lng), parseFloat(lat)],
-          },
-          distanceField: "distance",
-          spherical: true,
-        },
-      },
-      { $match: { category: "mobile" } },
-      { $sort: { distance: 1, createdAt: -1 } },
-      { $limit: 4 },
-    ]);
+    lon = parseFloat(lon);
+    lat = parseFloat(lat);
+    if (isNaN(lon) || isNaN(lat)) return res.redirect("/dashboard/sample/api");
 
-    const carads = await adsModel.aggregate([
-      {
-        $geoNear: {
-          near: {
-            type: "Point",
-            coordinates: [parseFloat(lng), parseFloat(lat)],
-          },
-          distanceField: "distance",
-          spherical: true,
-        },
-      },
-      { $match: { category: "car" } },
-      { $sort: { distance: 1, createdAt: -1 } },
-      { $limit: 4 },
-    ]);
+    const userId = req.user._id;
+    const maxDistance = 300 * 1000;
+    const categories = [
+      { category: "Mobile Phones", limit: 5 },
+      { category: "Cars", limit: 5 },
+      { category: "House", subCategory: "Apartments", limit: 5 },
+      { category: "Mobile Phones", subCategory: "Foldable Phones", limit: 5 },
+      { category: "House", limit: 5 },
+      { category: "Beauty Products", limit: 5 },
+    ];
 
-    const landads = await adsModel.aggregate([
+    const geoNearQuery = (category, subCategory, limit) => [
       {
         $geoNear: {
-          near: {
-            type: "Point",
-            coordinates: [parseFloat(lng), parseFloat(lat)],
-          },
+          near: { type: "Point", coordinates: [lon, lat] },
           distanceField: "distance",
+          maxDistance,
           spherical: true,
         },
       },
-      { $match: { category: "house", subCategory: "plot" } },
-      { $sort: { distance: 1, createdAt: -1 } },
-      { $limit: 4 },
-    ]);
+      {
+        $match: {
+          category,
+          postedBy: { $ne: userId },
+          ...(subCategory && { subCategory }),
+        },
+      },
+      { $sample: { size: limit } },
+    ];
 
-    const tabletads = await adsModel.aggregate([
-      {
-        $geoNear: {
-          near: {
-            type: "Point",
-            coordinates: [parseFloat(lng), parseFloat(lat)],
+    const [recentAds, ...categoryData] = await Promise.all([
+      adsModel.aggregate([
+        {
+          $geoNear: {
+            near: { type: "Point", coordinates: [lon, lat] },
+            distanceField: "distance",
+            maxDistance,
+            spherical: true,
           },
-          distanceField: "distance",
-          spherical: true,
         },
-      },
-      { $match: { category: "phone", subCategory: "tablet" } },
-      { $sort: { distance: 1, createdAt: -1 } },
-      { $limit: 4 },
-    ]);
-
-    const houses = await adsModel.aggregate([
-      {
-        $geoNear: {
-          near: {
-            type: "Point",
-            coordinates: [parseFloat(lng), parseFloat(lat)],
-          },
-          distanceField: "distance",
-          spherical: true,
-        },
-      },
-      { $match: { category: "house" } },
-      { $sort: { distance: 1, createdAt: -1 } },
-      { $limit: 4 },
-    ]);
-
-    const bikeads = await adsModel.aggregate([
-      {
-        $geoNear: {
-          near: {
-            type: "Point",
-            coordinates: [parseFloat(lng), parseFloat(lat)],
-          },
-          distanceField: "distance",
-          spherical: true,
-        },
-      },
-      { $match: { category: "bike" } },
-      { $sort: { distance: 1, createdAt: -1 } },
-      { $limit: 4 },
+        { $sample: { size: 8 } },
+      ]),
+      ...categories.map(({ category, subCategory, limit }) =>
+        adsModel.aggregate(geoNearQuery(category, subCategory, limit))
+      ),
     ]);
 
     res.status(200).json({
       success: true,
       recentAds,
-      MobileAds,
-      carads,
-      houses,
-      bikeads,
-      landads,
-      tabletads,
+      mobilePhones: categoryData[0],
+      cars: categoryData[1],
+      apartments: categoryData[2],
+      foldablePhones: categoryData[3],
+      houses: categoryData[4],
+      beautyProducts: categoryData[5],
     });
   } catch (error) {
-    console(error);
+    console.error(error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
@@ -238,7 +193,7 @@ router.get("/listings", isLoggedIn, isUser, async (req, res) => {
       },
       { $match: matchQuery },
       { $sort: { distance: 1, createdAt: -1 } },
-      { $limit: 4 },
+      { $limit: 5 },
     ]);
 
     res.status(200).json({ success: true, ads });
@@ -247,6 +202,7 @@ router.get("/listings", isLoggedIn, isUser, async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
+
 router.get("/items/:id", isLoggedIn, isUser, async (req, res) => {
   const { id } = req.params;
   try {
@@ -260,6 +216,7 @@ router.get("/items/:id", isLoggedIn, isUser, async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
+
 router.post("/item/report", isLoggedIn, isUser, async (req, res) => {
   const { title, issue, createdBy, type, id } = req.query;
   const { description } = req.body;
