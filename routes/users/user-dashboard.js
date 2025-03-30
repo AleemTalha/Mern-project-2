@@ -168,16 +168,17 @@ router.get("/listings", isLoggedIn, isUser, async (req, res) => {
       ...(subcategorie && { subCategory: subcategorie }),
     };
 
-    const minPrice = parseFloat(startPrice);
-    const maxPrice = parseFloat(lastPrice);
+    const minPrice = startPrice ? parseFloat(startPrice) : null;
+    const maxPrice = lastPrice ? parseFloat(lastPrice) : null;
 
-    if (!isNaN(minPrice) && !isNaN(maxPrice)) {
+    if (minPrice !== null && maxPrice !== null) {
       matchQuery.price = { $gte: minPrice, $lte: maxPrice };
-    } else if (!isNaN(minPrice)) {
+    } else if (minPrice !== null) {
       matchQuery.price = { $gte: minPrice };
-    } else if (!isNaN(maxPrice)) {
+    } else if (maxPrice !== null) {
       matchQuery.price = { $lte: maxPrice };
     }
+    // console(matchQuery);
 
     let ads = [];
     let newFirstId = firstId;
@@ -291,7 +292,6 @@ router.get("/listings", isLoggedIn, isUser, async (req, res) => {
     }
 
     const isLastAd = uniqueAds.length < 4;
-
     res.status(200).json({
       success: true,
       ads: uniqueAds,
@@ -303,6 +303,7 @@ router.get("/listings", isLoggedIn, isUser, async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
+
 
 router.get("/items/:id", isLoggedIn, isUser, async (req, res) => {
   const { id } = req.params;
