@@ -110,8 +110,20 @@ const userReportLimiter = rateLimit({
   },
 });
 
+const userDBLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 5,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      message: "Too many DB attempts. Please try again later."
+    });
+  },
+});
+
 module.exports = {
   userLimiter,
+  userDBLimiter,
   adminLimiter,
   userReportLimiter,
   loginLimiter,

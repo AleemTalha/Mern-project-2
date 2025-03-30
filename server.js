@@ -9,6 +9,8 @@ const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
+const { isLoggedIn } = require("./middlewares/isLoggedIn");
+const { isAdmin } = require("./middlewares/isAdmin");
 const cors = require("cors");
 
 const app = express();
@@ -31,13 +33,13 @@ if (MONGO_URI.includes("<dbname>") && process.env.DB_NAME) {
 }
 app.use(
   session({
-    secret: "your_secret_key",
+    secret: process.env.ACESS_TOKEN_SECRET || "none",
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: MONGO_URI }),
     cookie: {
       secure: false,
-      httpOnly: true,
+      httpOnly: false,
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
@@ -59,7 +61,6 @@ app.use((req, res, next) => {
   next();
 });
 
-
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
@@ -74,12 +75,14 @@ app.get("/hello", (req, res) => {
   });
 });
 
+app.use("/admin", isLoggedIn, isAdmin, require("./routes/admin"));
 app.use("/", require("./routes/user"));
 
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: "Error 404! Not found. Sorry, the page you are looking for does not exist. don't try to access it.",
+    message:
+      "Error 404! Not found. Sorry, the page you are looking for does not exist. don't try to access it.",
   });
 });
 

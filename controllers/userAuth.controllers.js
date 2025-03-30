@@ -154,42 +154,66 @@ const getRegistered = async (req, res, next) => {
 const loginUser = async (req, res) => {
   try {
     if (!req.body.email || !req.body.password) {
-      return res.status(400).json({ error: "Missing credentials" })
+      return res.status(400).json({ error: "Missing credentials" });
     }
     const { email, password } = req.body;
-    const flag = await userModel.findOne({ email });
-    if (!flag)
+    const user = await userModel.findOne({ email });
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: "Invalid Email or Password. Please try again",
-      });
-    const isMatch = await bcrypt.compare(password, flag.password);
-    if (!isMatch)
-      return res.status(404).json({
-        success: false,
-        message: "Invalid Email or Password. Please try again",
-      });
-    if (flag.role === "user") {
-      const accesstoken = generateAccessToken(flag);
-      res.cookie("token", accesstoken, {
-        httpOnly: true,
-        secure: true,
-        maxAge: 15 * 24 * 60 * 60 * 1000,
-        expires: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
-      });
-    } else if (flag.role === "admin") {
-      const accesstoken = generateAccessTokenAdmin(flag);
-      res.cookie("token", accesstoken, {
-        httpOnly: true,
-        secure: true,
-        maxAge: 60 * 60 * 1000,
-        expires: new Date(Date.now() + 60 * 60 * 1000),
       });
     }
-    res
-      .status(200)
-      .json({ success: true, message: `${flag.role} Login successful` });
+
+    if (user.status === "inactive") {
+      console.log("Error: User account is blocked, access denied.");
+      return res.status(403).json({
+        success: false,
+        message: "User is blocked, Scroll Down to send an Application",
+        blockedUser: true,
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(404).json({
+        success: false,
+        message: "Invalid Email or Password. Please try again",
+      });
+    }
+
+    let accessToken;
+    let maxAge;
+
+    if (user.role === "user") {
+      accessToken = generateAccessToken(user);
+      maxAge = 15 * 24 * 60 * 60 * 1000;
+    } else if (user.role === "admin") {
+      console.log()
+      accessToken = generateAccessTokenAdmin(user);
+      maxAge = 60 * 60 * 1000;
+    }
+
+    res.cookie("token", accessToken, {
+      httpOnly: false,
+      sameSite: "none",
+      secure: true,
+      maxAge,
+      expires: new Date(Date.now() + maxAge),
+    });
+
+    req.session.user = Object.freeze({ ...user.toObject(), token: accessToken });
+    req.session.token = accessToken;
+    req.session.cookie.maxAge = maxAge;
+
+    res.status(200).json({
+      success: true,
+      message: `${user.role} Login successful`,
+      role: user.role,
+    });
+
   } catch (err) {
+    console.log("err" , err)
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };

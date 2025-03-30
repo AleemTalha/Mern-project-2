@@ -9,8 +9,9 @@ const userModel = require("../models/userModel");
 router.get("/dashboard", (req, res) => {
   res
     .status(200)
-    .json({ success: true, message: "Welcome to the admin dashboard" });
+    .json({ success: true, message: "Welcome to the admin dashboard", loggedIn: true });
 });
+
 // reports specific routes
 router.use("/reports", require("./admin/reports"));
 // user specific routes

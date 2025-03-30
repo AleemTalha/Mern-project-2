@@ -28,8 +28,9 @@ const loginSuperAdmin = [
       }
       const token = generateAccessTokenAdminSuper(superAdmin);
       res.cookie("token", token, { 
-        httpOnly: true,
-        secure: true,
+        httpOnly: false,
+        sameSite: "none",
+        secure: process.env.NODE_ENV === "production",
         maxAge: 60 * 60 * 1000,
         expires: new Date(Date.now() + 60 * 60 * 1000),
        });

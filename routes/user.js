@@ -46,6 +46,7 @@ router.get(
   "/profile/profile-id/:id/:lastId?",
   userLimiter,
   isLoggedIn,
+  isUser,
   async (req, res) => {
     try {
       const userId = req.params.id;
