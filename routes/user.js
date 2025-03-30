@@ -130,6 +130,7 @@ router.get("/application", async (req, res) => {
     .status(200)
     .json({ success: true, message: "Application page is running" });
 });
+
 router.post("/application", reportLimiter, async (req, res) => {
   try {
     const { email, fullName, description } = req.body;
@@ -155,8 +156,11 @@ router.post("/application", reportLimiter, async (req, res) => {
       email,
       fullName,
       description,
-      userId: user._id,
+      status: "pending",
+      issue: "Account Open",
+      createdBy: user._id,
     });
+
     await application.save();
     res
       .status(200)
@@ -166,6 +170,29 @@ router.post("/application", reportLimiter, async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
+
+router.post("/simple/application", async (req, res) => {
+  try {
+    const { email, description } = req.body;
+    if (!email || !description)
+      return res.status(400).json({
+        success: false,
+        message: "Email and Description are required",
+      });
+
+    const application = new applicationModel({ email, description });
+    await application.save();
+
+    res.status(200).json({
+      success: true,
+      message:
+        "Thank you! We have received your application and will review it soon and take necessary action.",
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
+
 router.get("/logout", userLimiter, isLoggedIn, (req, res) => {
   res.clearCookie("token");
   if (req.session.user) {
@@ -194,10 +221,5 @@ router.use(
   isUser,
   require("./users/user-posts")
 );
-router.get("/limiter", singleLimiter, (req, res) => {
-  res.json({
-    message: "You can only perform this action once every 15 minutes.",
-  });
-});
 
 module.exports = router;

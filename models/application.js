@@ -2,18 +2,18 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const applicationSchema = new Schema({
-  name: {
+  fullName: {
     type: String,
-    required: true,
+    // required: true,
   },
   description: {
     type: String,
-    required: true,
+    // required: true,
   },
   createdBy: {
     type: Schema.Types.ObjectId,
     ref: "User",
-    required: true,
+    // required: true,
   },
   createdAt: {
     type: Date,
@@ -21,6 +21,7 @@ const applicationSchema = new Schema({
   },
   issue: {
     type: String,
+    default : "simple",
   },
   status: {
     type: String,

@@ -47,12 +47,11 @@ router.post("/ads", upload.single("image"), async (req, res) => {
       phoneNumber,
       showNumber,
       description,
-      Make,
-      Model,
-      Year,
-      Mileage,
-      Area,
-      Rooms,
+      locationCity,
+      bedrooms,
+      bathrooms,
+      area,
+      furnished,
       latitude,
       longitude,
     } = req.body;
@@ -80,15 +79,12 @@ router.post("/ads", upload.single("image"), async (req, res) => {
       phoneNumber: "Phone Number",
       showNumber: "Show Number",
       description: "Description",
-      ...(category === "Cars" && {
-        Make: "Make",
-        Model: "Model",
-        Year: "Year",
-        Mileage: "Mileage",
-      }),
       ...(category === "Houses" && {
-        Area: "Area",
-        Rooms: "Rooms",
+        locationCity: "Location City",
+        bedrooms: "Bedrooms",
+        bathrooms: "Bathrooms",
+        area: "Area",
+        furnished: "Furnished",
       }),
     };
 
@@ -155,11 +151,15 @@ router.post("/ads", upload.single("image"), async (req, res) => {
 
     let AdModel = Ads;
 
-    if (category === "Cars") {
-      adData = { ...adData, Make, Model, Year, Mileage };
-      AdModel = CarAds;
-    } else if (category === "Houses") {
-      adData = { ...adData, Area, Rooms };
+    if (category === "Houses") {
+      adData = {
+        ...adData,
+        locationCity,
+        bedrooms,
+        bathrooms,
+        area,
+        furnished,
+      };
       AdModel = HouseAds;
     }
 

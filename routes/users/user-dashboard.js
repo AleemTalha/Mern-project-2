@@ -304,7 +304,6 @@ router.get("/listings", isLoggedIn, isUser, async (req, res) => {
   }
 });
 
-
 router.get("/items/:id", isLoggedIn, isUser, async (req, res) => {
   const { id } = req.params;
   try {
