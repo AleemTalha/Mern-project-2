@@ -284,8 +284,9 @@ const loginUser = async (req, res) => {
       secure: process.env.NODE_ENV === "production",
       maxAge,
       expires: new Date(Date.now() + maxAge),
-      domain: "your-frontend-domain.com",
+      domain: ".vercel.app",
     });
+    
     
 
     req.session.user = Object.freeze({

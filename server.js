@@ -35,7 +35,6 @@ if (MONGO_URI.includes("<dbname>") && process.env.DB_NAME) {
 console.log("Mongo URI:", MONGO_URI);
 
 const isProduction = process.env.NODE_ENV === 'production';
-
 app.use(
   session({
     secret: process.env.ACESS_TOKEN_SECRET || "none",
@@ -43,10 +42,10 @@ app.use(
     saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: MONGO_URI }),
     cookie: {
-      secure: isProduction,
-      httpOnly: false, 
-      sameSite: isProduction ? 'None' : 'Lax',
-      maxAge: 1000 * 60 * 60 * 24 * 7, 
+      secure: isProduction, // Ensure cookies are secure in production (https)
+      httpOnly: false, // Allow frontend to access cookies
+      sameSite: isProduction ? "None" : "Lax", // Set SameSite for production as "None"
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
     },
   })
 );
@@ -65,6 +64,7 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   next();
 });
+
 
 app.get("/", (req, res) => {
   res.status(200).json({

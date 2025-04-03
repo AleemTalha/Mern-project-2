@@ -85,10 +85,11 @@ const isLoggedIn = async (req, res, next) => {
       res.cookie("token", accessToken, {
         httpOnly: false,
         secure: true,
-        sameSite: "none",
+        sameSite: "None",
         maxAge,
         expires: new Date(Date.now() + maxAge),
-      })
+        domain: ".vercel.app",
+      });          
       req.session.user = Object.freeze({
         ...user.toObject(),
         token: accessToken,
