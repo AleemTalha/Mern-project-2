@@ -100,11 +100,3 @@ const server = app.listen(port, () => {
   console.log(`Server running at port ${port}`);
 });
 
-process.on("SIGTERM", () => {
-  console.log("SIGTERM received, shutting down gracefully...");
-  server.close(() => {
-    console.log("Process terminated.");
-  });
-});
-
-module.exports = app;
