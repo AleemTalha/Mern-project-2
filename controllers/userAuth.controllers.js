@@ -280,11 +280,13 @@ const loginUser = async (req, res) => {
 
     res.cookie("token", accessToken, {
       httpOnly: false,
-      sameSite: "none",
-      secure: true,
+      sameSite: "None",
+      secure: process.env.NODE_ENV === "production",
       maxAge,
       expires: new Date(Date.now() + maxAge),
+      domain: "your-frontend-domain.com",
     });
+    
 
     req.session.user = Object.freeze({
       ...user.toObject(),
