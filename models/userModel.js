@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Ads", default: [] }],
   location: { type: { type: String, enum: ["Point"], default: "Point" }, coordinates: { type: [Number], default: [0, 0] } },
+  ipAddress: { type: String, default: null }
 });
 
 userSchema.index({ role: 1 });

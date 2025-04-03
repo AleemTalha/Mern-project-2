@@ -14,14 +14,13 @@ router.get("/dashboard", (req, res) => {
       user: req.user,
     });
 });
-
+// Application specific routes
+router.use("/applications", require("./admin/application"));
 // reports specific routes
 router.use("/reports", require("./admin/reports"));
 // user specific routes
 router.use("/users", require("./admin/user"));
 // ads specific routes
 router.use("/ads", require("./admin/ads"));
-// Application specific routes
-router.use("/applications", require("./admin/application"));
 
 module.exports = router;

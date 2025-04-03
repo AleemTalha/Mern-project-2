@@ -7,6 +7,7 @@ const cloudinary = require("../../config/cloudinary.config");
 const Ads = require("../../models/ads.models");
 const CarAds = require("../../models/carAds");
 const HouseAds = require("../../models/houseAd");
+const sharp = require("sharp");
 
 router.get("/", (req, res) => {
   res.status(200).json({
@@ -79,7 +80,7 @@ router.post("/ads", upload.single("image"), async (req, res) => {
       phoneNumber: "Phone Number",
       showNumber: "Show Number",
       description: "Description",
-      ...(category === "Houses" && {
+      ...(category === "House" && {
         locationCity: "Location City",
         bedrooms: "Bedrooms",
         bathrooms: "Bathrooms",
@@ -122,13 +123,25 @@ router.post("/ads", upload.single("image"), async (req, res) => {
       });
     }
 
+    const compressedImageBuffer = await sharp(req.file.buffer)
+      .resize({ fit: sharp.fit.inside })
+      .jpeg({ quality: 20 })
+      .toBuffer();
+
+    if (compressedImageBuffer.length > 400 * 1024) {
+      return res.status(400).json({
+        success: false,
+        message: "Image size should be less than 400KB",
+      });
+    }
+
     const result = await new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream({ resource_type: "image" }, (error, result) => {
           if (error) reject(error);
           else resolve(result);
         })
-        .end(req.file.buffer);
+        .end(compressedImageBuffer);
     });
 
     let adData = {

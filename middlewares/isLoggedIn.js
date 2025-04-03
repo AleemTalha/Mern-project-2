@@ -11,6 +11,7 @@ const isLoggedIn = async (req, res, next) => {
     } catch (err) {
       console("Error: Invalid session token");
       return res.status(401).json({
+        loggedIn: false,
         success: false,
         message: "Unauthorized access, Invalid session token",
       });

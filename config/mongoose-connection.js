@@ -14,7 +14,7 @@ Mongo_URI = Mongo_URI.replace("<dbname>", process.env.DB_NAME);
 mongoose
   .connect(Mongo_URI, {
     maxPoolSize: 50,
-    serverSelectionTimeoutMS: 3000,
+    serverSelectionTimeoutMS: 30000,
     socketTimeoutMS: 30000,
   })
   .then(async () => {

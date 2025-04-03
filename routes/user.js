@@ -29,16 +29,6 @@ const { isLoggedIn } = require("../middlewares/isLoggedIn");
 
 router.post("/login", loginLimiter, loginUser);
 router.get("/auth/check-login", (req, res) => {
-  const token = req.cookies?.token;
-  const sessionUser = req.session?.user;
-
-  if (token || sessionUser) {
-    return res.json({
-      success: false,
-      message: "You are already logged in. Please logout first.",
-    });
-  }
-
   res.json({ success: true, message: "You can proceed to login." });
 });
 
