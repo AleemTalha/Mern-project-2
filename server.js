@@ -31,6 +31,9 @@ if (MONGO_URI.includes("<db_password>") && process.env.DB_PASSWORD) {
 if (MONGO_URI.includes("<dbname>") && process.env.DB_NAME) {
   MONGO_URI = MONGO_URI.replace("<dbname>", process.env.DB_NAME);
 }
+
+const isProduction = process.env.NODE_ENV === 'production';
+
 app.use(
   session({
     secret: process.env.ACESS_TOKEN_SECRET || "none",
@@ -38,23 +41,23 @@ app.use(
     saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: MONGO_URI }),
     cookie: {
-      secure: false,
-      httpOnly: false,
-      sameSite: "lax",
-      maxAge: 1000 * 60 * 60 * 24 * 7,
+      secure: isProduction, // Secure cookies in production (use HTTPS)
+      httpOnly: false, // Set this to false to allow access via JavaScript (for frontend cookies)
+      sameSite: isProduction ? 'None' : 'Lax', // Allow cross-origin cookies in production
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
     },
   })
 );
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: isProduction ? "https://your-production-frontend-url.com" : "http://localhost:5173",
     credentials: true,
   })
 );
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header("Access-Control-Allow-Origin", isProduction ? "https://your-production-frontend-url.com" : "http://localhost:5173");
   res.header("Access-Control-Allow-Credentials", "true");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -78,7 +81,11 @@ app.get("/hello", (req, res) => {
 app.use("/admin", isLoggedIn, isAdmin, require("./routes/admin"));
 app.use("/", require("./routes/user"));
 
-app.use((req, res) => {
+
+
+app.use((req, res) =>{
+  
+  
   res.status(404).json({
     success: false,
     message:
