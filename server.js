@@ -25,12 +25,14 @@ app.use(compression());
 app.use(cookieParser());
 
 let MONGO_URI = config.get("MONGO_URI");
-if (MONGO_URI.includes("<db_password>") && process.env.DB_PASSWORD) {
+if (MONGO_URI.includes("<dbpassword>") && process.env.DB_PASSWORD) {
   MONGO_URI = MONGO_URI.replace("<db_password>", process.env.DB_PASSWORD);
 }
 if (MONGO_URI.includes("<dbname>") && process.env.DB_NAME) {
   MONGO_URI = MONGO_URI.replace("<dbname>", process.env.DB_NAME);
 }
+
+console.log("Mongo URI:", MONGO_URI);
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -41,10 +43,10 @@ app.use(
     saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: MONGO_URI }),
     cookie: {
-      secure: isProduction, // Secure cookies in production (use HTTPS)
-      httpOnly: false, // Set this to false to allow access via JavaScript (for frontend cookies)
-      sameSite: isProduction ? 'None' : 'Lax', // Allow cross-origin cookies in production
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+      secure: isProduction,
+      httpOnly: false, 
+      sameSite: isProduction ? 'None' : 'Lax',
+      maxAge: 1000 * 60 * 60 * 24 * 7, 
     },
   })
 );
