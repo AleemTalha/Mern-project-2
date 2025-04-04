@@ -90,6 +90,7 @@ const isLoggedIn = async (req, res, next) => {
         domain: ".vercel.app",
         expires: new Date(Date.now() + maxAge),
       });
+      console.log('Cookies sent to client:', req.cookies);
       req.session.user = Object.freeze({
         ...user.toObject(),
         token: accessToken,

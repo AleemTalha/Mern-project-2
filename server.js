@@ -39,10 +39,10 @@ app.use(
     saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: MONGO_URI }),
     cookie: {
-      domain: ".vercel.app", // Set the domain for the cookie
-      secure: process.env.NODE_ENV === "production", // Use secure cookies only in production
-      httpOnly: true, // Prevent JavaScript from accessing cookies
-      sameSite: "none", // Allow cross-origin requests
+      domain: ".vercel.app", 
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true, 
+      sameSite: "none",
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })
@@ -50,8 +50,8 @@ app.use(
 
 app.use(
   cors({
-    origin: "https://sell-sphere-one.vercel.app", // Frontend URL
-    credentials: true, // Allow cookies to be sent with requests
+    origin: "https://sell-sphere-one.vercel.app", 
+    credentials: true,
   })
 );
 
