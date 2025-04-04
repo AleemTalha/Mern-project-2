@@ -40,19 +40,19 @@ const isLoggedIn = async (req, res, next) => {
       req.cookies.token,
       process.env.ACCESS_TOKEN_SECRET
     );
-    console(`Running DB Query: Finding user with ID ${decoded.id}`)
+    console(`Running DB Query: Finding user with ID ${decoded.id}`);
 
     let user = await userModel
       .findOne({ _id: decoded.id })
-      .select("email fullname status role location profileImage")
+      .select("email fullname status role location profileImage");
 
     if (!user) {
-      console("Error: Invalid email, user not found in DB")
+      console("Error: Invalid email, user not found in DB");
       return res.status(401).json({
         success: false,
         message: "Unauthorized access, Invalid email",
         loggedIn: false,
-      })
+      });
     }
     if (user.status === "inactive") {
       console("Error: User is inactivated, destroying all cookies");
@@ -72,27 +72,27 @@ const isLoggedIn = async (req, res, next) => {
           { id: user._id },
           process.env.ACCESS_TOKEN_SECRET,
           { expiresIn: "15d" }
-        )
+        );
         maxAge = 15 * 24 * 60 * 60 * 1000;
       } else if (user.role === "admin") {
         accessToken = jwt.sign(
           { id: user._id },
           process.env.ACCESS_TOKEN_SECRET,
           { expiresIn: "1h" }
-        )
+        );
         maxAge = 60 * 60 * 1000;
       }
       res.cookie("token", accessToken, {
-        httpOnly: false,
-        secure: true,
-        sameSite: "none",
+        httpOnly: false, // Allow JavaScript to edit cookies
+        secure: true, // Use secure cookies in production
+        sameSite: "none", // Ensure compatibility with cross-origin requests
         maxAge,
         expires: new Date(Date.now() + maxAge),
-      })
+      });
       req.session.user = Object.freeze({
         ...user.toObject(),
         token: accessToken,
-      })
+      });
       req.session.token = accessToken;
       req.session.cookie.maxAge = maxAge;
       console("Session initialized from cookie token");

@@ -31,6 +31,7 @@ if (MONGO_URI.includes("<db_password>") && process.env.DB_PASSWORD) {
 if (MONGO_URI.includes("<dbname>") && process.env.DB_NAME) {
   MONGO_URI = MONGO_URI.replace("<dbname>", process.env.DB_NAME);
 }
+
 app.use(
   session({
     secret: process.env.ACESS_TOKEN_SECRET || "none",
@@ -38,9 +39,9 @@ app.use(
     saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: MONGO_URI }),
     cookie: {
-      secure: false,
-      httpOnly: false,
-      sameSite: "lax",
+      secure: true, // Use secure cookies in production
+      httpOnly: false, // Allow JavaScript to edit cookies
+      sameSite: "none", // Ensure compatibility with cross-origin requests
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })
@@ -48,13 +49,16 @@ app.use(
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL || "http://localhost:5173", // Use environment variable for client URL
     credentials: true,
   })
 );
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header(
+    "Access-Control-Allow-Origin",
+    process.env.CLIENT_URL || "http://localhost:5173"
+  );
   res.header("Access-Control-Allow-Credentials", "true");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -86,7 +90,7 @@ app.use((req, res) => {
   });
 });
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT;
 const server = app.listen(port, () => {
   console.log(`Server running at port ${port}`);
 });
