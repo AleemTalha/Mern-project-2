@@ -87,7 +87,7 @@ const isLoggedIn = async (req, res, next) => {
         maxAge = 60 * 60 * 1000;
       }
       res.cookie("token", accessToken, {
-        httpOnly: false // Prevent JavaScript from accessing cookies
+        httpOnly: false, // Prevent JavaScript from accessing cookies
         secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         sameSite: "none", // Allow cross-origin requests
         maxAge,
