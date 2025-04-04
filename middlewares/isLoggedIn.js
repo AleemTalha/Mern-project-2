@@ -3,6 +3,10 @@ const userModel = require("../models/userModel");
 const debug= require("debug")("development:auth");
 
 const isLoggedIn = async (req, res, next) => {
+  console.log("Checking if user is logged in...");
+  console.log("Session data:", req.session);
+  console.log("Cookie data:", req.cookies);
+  console.log("Request headers:", req.headers);
   if (req.session.user && req.session.token && req.cookies.token) {
     try {
       jwt.verify(req.session.token, process.env.ACCESS_TOKEN_SECRET);
