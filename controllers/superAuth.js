@@ -31,6 +31,7 @@ const loginSuperAdmin = [
         httpOnly: false,
         sameSite: "none",
         secure: true,
+        path: "/",
         maxAge: 60 * 60 * 1000,
         expires: new Date(Date.now() + 60 * 60 * 1000),
        });

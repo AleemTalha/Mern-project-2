@@ -283,6 +283,7 @@ const loginUser = async (req, res) => {
       sameSite: "none", // Allow cross-origin requests
       secure: process.env.NODE_ENV === "production", // Use secure cookies in production
       maxAge,
+      path: "/",
       expires: new Date(Date.now() + maxAge),
     });
     console.log("Set-Cookie Header:", res.getHeaders()["set-cookie"]);
