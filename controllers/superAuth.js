@@ -30,7 +30,8 @@ const loginSuperAdmin = [
       res.cookie("token", token, { 
         httpOnly: false,
         sameSite: "none",
-        secure: process.env.NODE_ENV === "production",
+        secure: true,
+        domain: ".vercel.app",
         maxAge: 60 * 60 * 1000,
         expires: new Date(Date.now() + 60 * 60 * 1000),
        });

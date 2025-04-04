@@ -39,9 +39,10 @@ app.use(
     saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: MONGO_URI }),
     cookie: {
-      secure: true, // Use secure cookies in production
-      httpOnly: false, // Allow JavaScript to edit cookies
-      sameSite: "none", // Ensure compatibility with cross-origin requests
+      domain: ".vercel.app", // Set the domain for the cookie
+      secure: process.env.NODE_ENV === "production", // Use secure cookies only in production
+      httpOnly: true, // Prevent JavaScript from accessing cookies
+      sameSite: "none", // Allow cross-origin requests
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })
@@ -49,16 +50,16 @@ app.use(
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173", // Use environment variable for client URL
-    credentials: true,
+    origin: "https://sell-sphere-one.vercel.app", // Frontend URL
+    credentials: true, // Allow cookies to be sent with requests
   })
 );
 
 app.use((req, res, next) => {
   res.header(
     "Access-Control-Allow-Origin",
-    process.env.CLIENT_URL || "http://localhost:5173"
-  );
+    "https://sell-sphere-one.vercel.app"
+  ); // Frontend URL
   res.header("Access-Control-Allow-Credentials", "true");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");

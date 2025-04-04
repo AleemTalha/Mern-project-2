@@ -83,10 +83,11 @@ const isLoggedIn = async (req, res, next) => {
         maxAge = 60 * 60 * 1000;
       }
       res.cookie("token", accessToken, {
-        httpOnly: false, // Allow JavaScript to edit cookies
-        secure: true, // Use secure cookies in production
-        sameSite: "none", // Ensure compatibility with cross-origin requests
+        httpOnly: true, // Prevent JavaScript from accessing cookies
+        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+        sameSite: "none", // Allow cross-origin requests
         maxAge,
+        domain: ".vercel.app",
         expires: new Date(Date.now() + maxAge),
       });
       req.session.user = Object.freeze({

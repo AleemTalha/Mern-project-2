@@ -279,9 +279,10 @@ const loginUser = async (req, res) => {
     }
 
     res.cookie("token", accessToken, {
-      httpOnly: false, // Allow JavaScript to edit cookies
-      sameSite: "none", // Ensure compatibility with cross-origin requests
-      secure: true, // Use secure cookies in production
+      httpOnly: true, // Prevent JavaScript from accessing cookies
+      sameSite: "none", // Allow cross-origin requests
+      domain: ".vercel.app",
+      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
       maxAge,
       expires: new Date(Date.now() + maxAge),
     });
