@@ -3,6 +3,9 @@ const router = express.Router();
 const reportsModel = require("../models/report.model");
 const console = require("debug")("development:admin-route");
 const userModel = require("../models/userModel");
+const upload = require("../config/multer-config");
+const cloudinary = require("../config/cloudinary.config");
+
 
 router.get("/dashboard", (req, res) => {
   res
@@ -14,6 +17,8 @@ router.get("/dashboard", (req, res) => {
       user: req.user,
     });
 });
+
+
 // Application specific routes
 router.use("/applications", require("./admin/application"));
 // reports specific routes

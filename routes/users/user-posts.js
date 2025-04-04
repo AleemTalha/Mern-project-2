@@ -41,6 +41,7 @@ router.post("/attributes", async (req, res) => {
 
 router.post("/ads", upload.single("image"), async (req, res) => {
   try {
+    console.log(req.body)
     const {
       title,
       condition,
@@ -55,6 +56,12 @@ router.post("/ads", upload.single("image"), async (req, res) => {
       furnished,
       latitude,
       longitude,
+      Make,
+      Model,
+      Year,
+      Mileage,
+      // fuelType,
+      // transmission,
     } = req.body;
 
     if (!latitude || !longitude) {
@@ -86,6 +93,14 @@ router.post("/ads", upload.single("image"), async (req, res) => {
         bathrooms: "Bathrooms",
         area: "Area",
         furnished: "Furnished",
+      }),
+      ...(category === "Cars" && {
+        Make: "Make",
+        Model: "Model",
+        Year: "Year",
+        Mileage: "Mileage",
+        // fuelType: "Fuel Type",
+        // transmission: "Transmission",
       }),
     };
 
@@ -174,6 +189,17 @@ router.post("/ads", upload.single("image"), async (req, res) => {
         furnished,
       };
       AdModel = HouseAds;
+    } else if (category === "Cars") {
+      adData = {
+        ...adData,
+        Make,
+        Model,
+        Year,
+        Mileage,
+        // fuelType,
+        // transmission,
+      };
+      AdModel = CarAds;
     }
 
     const newAd = new AdModel(adData);
@@ -189,6 +215,7 @@ router.post("/ads", upload.single("image"), async (req, res) => {
       message: "Ad posted successfully, Images uploaded",
     });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });

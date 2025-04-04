@@ -40,6 +40,13 @@ router.get(
   async (req, res) => {
     try {
       const userId = req.params.id;
+      if(req.user._id !== userId) {
+        console("User ID mismatch:", req.user._id, userId);
+        return res.status(403).json({
+          success: false,
+          message: "You are not authorized to access this profile.",
+        });
+      }
       const lastId = req.params.lastId;
       const limit = 4;
 
@@ -67,7 +74,7 @@ router.get(
 
       res.json({ success: true, user, lastOne });
     } catch (err) {
-      console.error(err);
+      console(err);
       res
         .status(500)
         .json({ success: false, message: "Internal Server Error" });
@@ -200,6 +207,7 @@ router.get("/logout", userLimiter, isLoggedIn, (req, res) => {
       .json({ success: true, message: "User logged out successfully" });
   });
 });
+
 router.post("/password-reset", userLimiter, isLoggedIn, isUser, updatePassword);
 router.use("/dashboard", userLimiter, require("./users/user-dashboard"));
 router.use("/update", userLimiter, require("./users/user.updates"));
