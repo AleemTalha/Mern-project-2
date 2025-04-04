@@ -33,38 +33,37 @@ if (MONGO_URI.includes("<dbname>") && process.env.DB_NAME) {
 }
 
 app.use(
+  cors({
+    origin: "https://sell-sphere-one.vercel.app",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "https://sell-sphere-one.vercel.app");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  next();
+});
+
+app.use(
   session({
     secret: process.env.ACESS_TOKEN_SECRET || "none",
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: MONGO_URI }),
     cookie: {
-      domain: ".vercel.app", 
+      domain: "sell-sphere-one.vercel.app",
       secure: process.env.NODE_ENV === "production",
-      httpOnly: true, 
+      httpOnly: true,
       sameSite: "none",
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })
 );
-
-app.use(
-  cors({
-    origin: "https://sell-sphere-one.vercel.app", 
-    credentials: true,
-  })
-);
-
-app.use((req, res, next) => {
-  res.header(
-    "Access-Control-Allow-Origin",
-    "https://sell-sphere-one.vercel.app"
-  ); // Frontend URL
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
-});
 
 app.get("/", (req, res) => {
   res.status(200).json({

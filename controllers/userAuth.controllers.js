@@ -281,7 +281,7 @@ const loginUser = async (req, res) => {
     res.cookie("token", accessToken, {
       httpOnly: true, // Prevent JavaScript from accessing cookies
       sameSite: "none", // Allow cross-origin requests
-      domain: ".vercel.app",
+      domain: "sell-sphere-one.vercel.app",
       secure: process.env.NODE_ENV === "production", // Use secure cookies in production
       maxAge,
       expires: new Date(Date.now() + maxAge),
