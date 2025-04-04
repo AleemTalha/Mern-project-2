@@ -28,7 +28,7 @@ const loginSuperAdmin = [
       }
       const token = generateAccessTokenAdminSuper(superAdmin);
       res.cookie("token", token, { 
-        httpOnly: true,
+        httpOnly: false,
         sameSite: "none",
         secure: true,
         domain: "sell-sphere-one.vercel.app",

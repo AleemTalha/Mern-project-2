@@ -58,7 +58,7 @@ app.use(
     cookie: {
       domain: "sell-sphere-one.vercel.app",
       secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
+      httpOnly: false,
       sameSite: "none",
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
