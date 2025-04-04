@@ -31,7 +31,7 @@ const loginSuperAdmin = [
         httpOnly: false,
         sameSite: "none",
         secure: true,
-        domain: "sell-sphere-one.vercel.app",
+        domain: ".vercel.app",
         maxAge: 60 * 60 * 1000,
         expires: new Date(Date.now() + 60 * 60 * 1000),
        });
