@@ -91,7 +91,6 @@ const isLoggedIn = async (req, res, next) => {
         secure: process.env.NODE_ENV === "production", // Use secure cookies in production
         sameSite: "none", // Allow cross-origin requests
         maxAge,
-        domain: ".vercel.app",
         expires: new Date(Date.now() + maxAge),
       });
       console.log("Set-Cookie Header:", res.getHeaders()["set-cookie"]);
