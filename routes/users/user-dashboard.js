@@ -78,6 +78,10 @@ router.get("/sample/api", async (req, res) => {
 
 router.post("/api", isLoggedIn, isUser, async (req, res) => {
   try {
+    console.log("Request body:", req.body);
+    console.log("Cookies:", req.cookies);
+    console.log("Session data:", req.session);
+    console.log("User data:", req.user);
     let { lon, lat } = req.body;
     if (!lon || !lat) {
       if (req.user.location?.coordinates) {
