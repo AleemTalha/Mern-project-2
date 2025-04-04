@@ -35,7 +35,7 @@ const loginSuperAdmin = [
         maxAge: 60 * 60 * 1000,
         expires: new Date(Date.now() + 60 * 60 * 1000),
        });
-       console.log('Cookies sent to client:', req.cookies);
+       console.log("Set-Cookie Header:", res.getHeaders()["set-cookie"]);
       res.status(200).json({ success: true, message: "Login successful", token });
     } catch (err) {
       console("Error: ", err.message);

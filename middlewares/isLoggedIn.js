@@ -94,7 +94,7 @@ const isLoggedIn = async (req, res, next) => {
         domain: "sell-sphere-one.vercel.app",
         expires: new Date(Date.now() + maxAge),
       });
-      console.log('Cookies sent to client:', req.cookies);
+      console.log("Set-Cookie Header:", res.getHeaders()["set-cookie"]);
       req.session.user = Object.freeze({
         ...user.toObject(),
         token: accessToken,
