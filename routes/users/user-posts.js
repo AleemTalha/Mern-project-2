@@ -41,7 +41,7 @@ router.post("/attributes", async (req, res) => {
 
 router.post("/ads", upload.single("image"), async (req, res) => {
   try {
-    // console.log(req.body)
+    console.log(req.body);
     const {
       title,
       condition,
@@ -60,8 +60,6 @@ router.post("/ads", upload.single("image"), async (req, res) => {
       Model,
       Year,
       Mileage,
-      // fuelType,
-      // transmission,
     } = req.body;
 
     if (!latitude || !longitude) {
@@ -79,6 +77,7 @@ router.post("/ads", upload.single("image"), async (req, res) => {
     }
 
     const { category, subCategory } = req.session.product;
+    console.log(category, subCategory);
 
     const requiredFields = {
       title: "Title",
@@ -99,8 +98,6 @@ router.post("/ads", upload.single("image"), async (req, res) => {
         Model: "Model",
         Year: "Year",
         Mileage: "Mileage",
-        // fuelType: "Fuel Type",
-        // transmission: "Transmission",
       }),
     };
 
@@ -179,14 +176,14 @@ router.post("/ads", upload.single("image"), async (req, res) => {
 
     let AdModel = Ads;
 
-    if (category === "Houses") {
+    if (category === "House") {
       adData = {
         ...adData,
         locationCity,
-        bedrooms,
-        bathrooms,
+        bedrooms: parseInt(bedrooms, 10),
+        bathrooms: parseInt(bathrooms, 10),
         area,
-        furnished,
+        furnished: furnished === "true",
       };
       AdModel = HouseAds;
     } else if (category === "Cars") {
@@ -194,10 +191,8 @@ router.post("/ads", upload.single("image"), async (req, res) => {
         ...adData,
         Make,
         Model,
-        Year,
-        Mileage,
-        // fuelType,
-        // transmission,
+        Year: parseInt(Year, 10),
+        Mileage: parseInt(Mileage, 10),
       };
       AdModel = CarAds;
     }
@@ -215,7 +210,7 @@ router.post("/ads", upload.single("image"), async (req, res) => {
       message: "Ad posted successfully, Images uploaded",
     });
   } catch (err) {
-    // console.log(err);
+    console.log(err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });

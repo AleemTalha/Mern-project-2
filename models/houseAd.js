@@ -9,6 +9,6 @@ const houseSchema = new mongoose.Schema({
   furnished: { type: Boolean, default: false },
 });
 
-const HouseAd = Ad.discriminator("Houses", houseSchema);
+const HouseAd = Ad.discriminator("House", houseSchema);
 
 module.exports = HouseAd;

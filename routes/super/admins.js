@@ -54,7 +54,6 @@ router.post("/add/admin", async (req, res) => {
     res.json({
       success: true,
       message: "Admin created successfully.",
-      admin: newAdmin,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

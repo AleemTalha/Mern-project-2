@@ -10,6 +10,7 @@ const isLoggedIn = async (req, res, next) => {
   if (req.session.user && req.session.token && req.cookies.token) {
     try {
       jwt.verify(req.session.token, process.env.ACCESS_TOKEN_SECRET);
+
       req.user = req.session.user;
       return next();
     } catch (err) {

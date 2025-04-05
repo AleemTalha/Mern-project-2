@@ -163,10 +163,10 @@ const fetchUserLocation = async (ipAddress) => {
     const data = await response.json();
     if (data && data.location) {
       // console.log(
-        // "Location data:",
-        // data.location?.city,
-        // data.country?.name,
-        // data.location?.localityName
+      // "Location data:",
+      // data.location?.city,
+      // data.country?.name,
+      // data.location?.localityName
       // );
       return {
         latitude: data.location.latitude,
@@ -281,6 +281,7 @@ const loginUser = async (req, res) => {
     res.cookie("token", accessToken, {
       httpOnly: false, // Prevent JavaScript from accessing cookies
       sameSite: "none", // Allow cross-origin requests
+      // sameSite: "lax",
       secure: process.env.NODE_ENV === "production", // Use secure cookies in production
       maxAge,
       domain: '.up.railway.app',
@@ -288,8 +289,15 @@ const loginUser = async (req, res) => {
       expires: new Date(Date.now() + maxAge),
     });
     // console.log("Set-Cookie Header:", res.getHeaders()["set-cookie"]);
+    const userWithoutPassword = user.toObject();
+    delete userWithoutPassword.password;
+    delete userWithoutPassword.posts;
+    delete userWithoutPassword.recoveryEmail;
+    delete userWithoutPassword.recoveryPhone;
+    delete userWithoutPassword.ipAddress;
+
     req.session.user = Object.freeze({
-      ...user.toObject(),
+      ...userWithoutPassword,
       token: accessToken,
     });
     req.session.token = accessToken;

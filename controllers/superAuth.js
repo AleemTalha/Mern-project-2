@@ -36,6 +36,13 @@ const loginSuperAdmin = [
         maxAge: 60 * 60 * 1000,
         expires: new Date(Date.now() + 60 * 60 * 1000),
        });
+      //  res.cookie("token", token, { 
+      //   httpOnly: false,
+      //   sameSite: "lax",
+      //   secure: true,
+      //   maxAge: 60 * 60 * 1000,
+      //   expires: new Date(Date.now() + 60 * 60 * 1000),
+      //  });
       //  console.log("Set-Cookie Header:", res.getHeaders()["set-cookie"]);
       res.status(200).json({ success: true, message: "Login successful", token });
     } catch (err) {
