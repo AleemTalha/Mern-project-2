@@ -34,8 +34,8 @@ if (MONGO_URI.includes("<dbname>") && process.env.DB_NAME) {
 
 app.use(
   cors({
-    // origin: "https://sellsphere-production-58f9.up.railway.app",
-    origin: "http://localhost:5173",
+    origin: "https://sellsphere-production-58f9.up.railway.app",
+    // origin: "http://localhost:5173",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -43,8 +43,8 @@ app.use(
 );
 
 app.use((req, res, next) => {
-  // res.header("Access-Control-Allow-Origin", "https://sellsphere-production-58f9.up.railway.app");
-  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header("Access-Control-Allow-Origin", "https://sellsphere-production-58f9.up.railway.app");
+  // res.header("Access-Control-Allow-Origin", "http://localhost:5173");
   res.header("Access-Control-Allow-Credentials", "true");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
