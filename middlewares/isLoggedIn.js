@@ -92,6 +92,7 @@ const isLoggedIn = async (req, res, next) => {
         sameSite: "none",
         maxAge,
         path: "/",
+        domain: '.up.railway.app',
         expires: new Date(Date.now() + maxAge),
       });
       // console.log("Set-Cookie Header:", res.getHeaders()["set-cookie"]);

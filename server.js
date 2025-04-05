@@ -34,7 +34,7 @@ if (MONGO_URI.includes("<dbname>") && process.env.DB_NAME) {
 
 app.use(
   cors({
-    origin: "https://sell-sphere-one.vercel.app",
+    origin: "https://sellsphere-production-58f9.up.railway.app",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -42,7 +42,7 @@ app.use(
 );
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "https://sell-sphere-one.vercel.app");
+  res.header("Access-Control-Allow-Origin", "https://sellsphere-production-58f9.up.railway.app");
   res.header("Access-Control-Allow-Credentials", "true");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -58,6 +58,7 @@ app.use(
     cookie: {
       secure: process.env.NODE_ENV === "production",
       httpOnly: false,
+      domain: '.up.railway.app',
       path: "/",
       sameSite: "none",
       maxAge: 1000 * 60 * 60 * 24 * 7,

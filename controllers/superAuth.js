@@ -32,6 +32,7 @@ const loginSuperAdmin = [
         sameSite: "none",
         secure: true,
         path: "/",
+        domain: '.up.railway.app',
         maxAge: 60 * 60 * 1000,
         expires: new Date(Date.now() + 60 * 60 * 1000),
        });
