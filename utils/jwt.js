@@ -16,7 +16,7 @@ const generateAccessToken = (user) => {
 
 const generateAccessTokenAdmin = (user) => {
   let role = user.role;
-  console.log("admin route here accessd")
+  // console.log("admin route here accessd")
   return jwt.sign(
     {
       id: user.id,

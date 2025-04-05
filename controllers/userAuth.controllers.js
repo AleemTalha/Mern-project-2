@@ -139,7 +139,7 @@ const getRegistered = async (req, res, next) => {
       .status(200)
       .json({ success: true, message: "User registered successfully" });
   } catch (err) {
-    console.error("Error in getRegistered:", err);
+    // console.error("Error in getRegistered:", err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
@@ -156,7 +156,7 @@ const fetchUserLocation = async (ipAddress) => {
     });
 
     if (!response.ok) {
-      console.error("Failed to fetch location data:", response.statusText);
+      // console.error("Failed to fetch location data:", response.statusText);
       return null;
     }
 
@@ -175,11 +175,11 @@ const fetchUserLocation = async (ipAddress) => {
         country: data.country?.name || "Unknown",
       };
     } else {
-      console.error("Invalid location data format:", data);
+      // console.error("Invalid location data format:", data);
       return null;
     }
   } catch (error) {
-    console.error("Error fetching user location:", error);
+    // console.error("Error fetching user location:", error);
     return null;
   }
 };

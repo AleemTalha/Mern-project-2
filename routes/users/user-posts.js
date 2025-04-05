@@ -41,7 +41,7 @@ router.post("/attributes", async (req, res) => {
 
 router.post("/ads", upload.single("image"), async (req, res) => {
   try {
-    console.log(req.body)
+    // console.log(req.body)
     const {
       title,
       condition,
@@ -215,7 +215,7 @@ router.post("/ads", upload.single("image"), async (req, res) => {
       message: "Ad posted successfully, Images uploaded",
     });
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });

@@ -92,7 +92,7 @@ const forgotPassword = async (req, res, next) => {
     res.json({ success: true, message: "OTP sent successfully", email });
 
   } catch (err) {
-    console.error(err);
+    // console.error(err);
     res.status(500).json({ success: false, message: "Error resetting password" });
   }
 };

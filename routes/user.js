@@ -115,7 +115,7 @@ router.get(
         message: "Post and associated image deleted successfully.",
       });
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       res
         .status(500)
         .json({ success: false, message: "Internal Server Error" });

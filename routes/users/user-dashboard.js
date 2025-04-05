@@ -78,10 +78,10 @@ router.get("/sample/api", async (req, res) => {
 
 router.post("/api", isLoggedIn, isUser, async (req, res) => {
   try {
-    console.log("Request body:", req.body);
-    console.log("Cookies:", req.cookies);
-    console.log("Session data:", req.session);
-    console.log("User data:", req.user);
+    // console.log("Request body:", req.body);
+    // console.log("Cookies:", req.cookies);
+    // console.log("Session data:", req.session);
+    // console.log("User data:", req.user);
     let { lon, lat } = req.body;
     if (!lon || !lat) {
       if (req.user.location?.coordinates) {
@@ -156,7 +156,7 @@ router.post("/api", isLoggedIn, isUser, async (req, res) => {
       beautyProducts: categoryData[5],
     });
   } catch (error) {
-    console.error(error);
+    // console.error(error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
@@ -303,7 +303,7 @@ router.get("/listings", isLoggedIn, isUser, async (req, res) => {
       firstId: newFirstId,
     });
   } catch (err) {
-    console.error(err);
+    // console.error(err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
