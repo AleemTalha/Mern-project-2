@@ -93,7 +93,7 @@ const VerifyRegistration = async (req, res, next) => {
 
 const getRegistered = async (req, res, next) => {
   try {
-    console.log(req.body);
+    // console.log(req.body);
     let email = req.session.verifiedEMAIL;
     const { password, DOB, ipAddress } = req.body;
     const username = req.session.username || "Anonymous";
@@ -162,12 +162,12 @@ const fetchUserLocation = async (ipAddress) => {
 
     const data = await response.json();
     if (data && data.location) {
-      console.log(
-        "Location data:",
-        data.location?.city,
-        data.country?.name,
-        data.location?.localityName
-      );
+      // console.log(
+        // "Location data:",
+        // data.location?.city,
+        // data.country?.name,
+        // data.location?.localityName
+      // );
       return {
         latitude: data.location.latitude,
         longitude: data.location.longitude,
@@ -201,7 +201,7 @@ const loginUser = async (req, res) => {
     }
 
     if (user.status === "inactive") {
-      console.log("Error: User account is blocked, access denied.");
+      // console.log("Error: User account is blocked, access denied.");
       return res.status(403).json({
         success: false,
         message: "User is blocked, Scroll Down to send an Application",
@@ -286,7 +286,7 @@ const loginUser = async (req, res) => {
       path: "/",
       expires: new Date(Date.now() + maxAge),
     });
-    console.log("Set-Cookie Header:", res.getHeaders()["set-cookie"]);
+    // console.log("Set-Cookie Header:", res.getHeaders()["set-cookie"]);
     req.session.user = Object.freeze({
       ...user.toObject(),
       token: accessToken,
@@ -300,7 +300,7 @@ const loginUser = async (req, res) => {
       role: user.role,
     });
   } catch (err) {
-    console.log("err", err);
+    // console.log("err", err);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
